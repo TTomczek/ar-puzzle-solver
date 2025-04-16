@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">ar-puzzle-solver</string>
+    <string name="app_name">Rätsel lösen</string>
+    <string name="hint_searching_puzzle">Suche...</string>
+    <string name="hint_different_angle">Versuche einen anderen Winkel</string>
 </resources>

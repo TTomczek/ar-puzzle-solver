@@ -52,8 +52,17 @@ dependencies {
     // SceneView
     implementation(libs.sceneview)
     implementation(libs.ar.scene.view)
+    // ML Kit
+    implementation(libs.text.recognition)
+    // OpenCV
+    implementation(libs.opencv)
+    // KotlinX Coroutines play services
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
+    testImplementation(libs.mockito)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "ar-puzzle-solver"
 include(":app")
- 

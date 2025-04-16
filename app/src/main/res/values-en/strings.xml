@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Solve puzzle</string>
+    <string name="hint_searching_puzzle">Searching...</string>
+    <string name="hint_different_angle">Try another angle</string>
+</resources>
