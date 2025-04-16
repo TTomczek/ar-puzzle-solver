@@ -3,4 +3,5 @@
     <string name="app_name">Solve puzzle</string>
     <string name="hint_searching_puzzle">Searching...</string>
     <string name="hint_different_angle">Try another angle</string>
+    <string name="hint_processing">Processing...</string>
 </resources>
