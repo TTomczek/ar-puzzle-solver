@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -131,23 +132,31 @@ fun SudokuGridShowSolutionPreview() {
 @Composable
 fun SudokuGrid(board: SudokuBoard, showSolution: Boolean = false, cellClick: (Int) -> Unit = {}) {
     val subGrids = splitSudokuBoardForPresentation(board)
-        Column(
-            modifier = Modifier
-                .aspectRatio(1f)
-                .background(color = MaterialTheme.colorScheme.background)
-        ) {
-            subGrids.forEachIndexed { subGridIndex, subGridsOfRow ->
-                Row(Modifier.fillMaxWidth()) {
-                    subGridsOfRow.forEachIndexed { subGridsOfRowIndex, subGridsOfColumn ->
-                        SudokuSubGrid(
-                            subGridsOfColumn,
-                            showSolution = showSolution,
-                            cellClick = cellClick
-                        )
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .background(color = MaterialTheme.colorScheme.background)
+    ) {
+        subGrids.forEachIndexed { _, subGridsOfRow ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                subGridsOfRow.forEachIndexed { _, subGridsOfColumn ->
+                    SudokuSubGrid(
+                        subGridsOfColumn,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        showSolution = showSolution,
+                        cellClick = cellClick
+                    )
                 }
             }
         }
+    }
 }
 
 @Preview
@@ -193,10 +202,21 @@ fun SudokuSubGrid(
             )
         )
     ) {
-        grid.forEachIndexed { gridIndex, cell ->
-            Row {
-                cell.forEachIndexed { cellIndex, config ->
-                    SudokuCell(config = config, showSolution = showSolution, cellClick = cellClick)
+        grid.forEach { row ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                row.forEach { config ->
+                    SudokuCell(
+                        config = config,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        showSolution = showSolution,
+                        cellClick = cellClick
+                    )
                 }
             }
         }
@@ -225,7 +245,6 @@ fun SudokuCell(
     val (index, value, isOriginal) = config
     Box(
         modifier = modifier
-            .size(40.dp)
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.inverseSurface)),
         contentAlignment = Alignment.Center
     ) {
@@ -238,6 +257,7 @@ fun SudokuCell(
         Text(
             text = text,
             modifier = Modifier
+                .fillMaxSize()
                 .clickable(true) { cellClick(index) },
             color = if (isOriginal) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center
