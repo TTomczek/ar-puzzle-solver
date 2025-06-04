@@ -1,5 +1,6 @@
 package net.tomczek.ar.puzzle.solver
 
+import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -27,7 +28,7 @@ class SudokuBoardTest {
                 false, false, false, true, true, false, false, false, true,
                 true, true, false, true, false, false, false, true, true,
                 true, true, false, false, false, true, false, true, false,
-                false, true, true, true, true, true, false,false,true,
+                false, true, true, true, true, true, false, false, true,
                 false, true, true, true, false, false, false, true, true
             )
         )
@@ -68,7 +69,7 @@ class SudokuBoardTest {
                 false, false, false, true, true, false, false, false, true,
                 true, true, false, true, false, false, false, true, true,
                 true, true, false, false, false, true, false, true, false,
-                false, true, true, true, true, true, false,false,true,
+                false, true, true, true, true, true, false, false, true,
                 false, true, true, true, false, false, false, true, true
             )
         )

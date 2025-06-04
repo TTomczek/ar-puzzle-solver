@@ -27,6 +27,8 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.tasks.await
+import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
+import org.opencv.core.Core
 
 
 class SudokuImageProcessor {
@@ -36,7 +38,7 @@ class SudokuImageProcessor {
     }
 
     @Throws(ImageProcessingException::class)
-    suspend fun processImage(context: Context, image: Image): SudokuBoard {
+    suspend fun processImage(context: Context, image: Image): SudokuBoard? {
 
         try {
             val bitmapImage = ImageConverter.imageToBitmap(image)
@@ -75,24 +77,26 @@ class SudokuImageProcessor {
                 throw ImageProcessingException("Failed to extract 81 Sudoku cells.")
             }
 
-            val cellsAsInputImage = sudokuCells.map { cell ->
+            val cellsAsInputImage = sudokuCells.mapIndexed { index, cell ->
                 val bitmapCell = matToBitmap(cell)
                 InputImage.fromBitmap(bitmapCell, 0)
             }
 
             val extractedNumbersFromCells = extractNumbersFromCells(
+                context,
                 TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS),
-                cellsAsInputImage
+                cellsAsInputImage,
+                sudokuCells
             )
 
             val sudokuBoard = SudokuBoard(
-                extractedNumbersFromCells.map { it.recognizedText.toIntOrNull() ?: 0 },
-                extractedNumbersFromCells.map { it.recognizedText.isNotEmpty() }
+                board = extractedNumbersFromCells.map { it.recognizedText.toIntOrNull() ?: 0 },
+                originalValuesMask = extractedNumbersFromCells.map { it.recognizedText.isNotEmpty() }
             )
             return sudokuBoard
         } catch (e: Exception) {
             Log.e("SudokuImageProcessor", "Error processing image: ${e.message}")
-            throw ImageProcessingException("Failed to process image: ${e.message}", e)
+            return null
         }
     }
 
@@ -111,10 +115,10 @@ class SudokuImageProcessor {
      * Convert the given Image to Grayscale with OpenCV.
      */
     fun toGrayscale(bitmapImage: Bitmap): Mat {
-        val tmpMat = Mat(bitmapImage.width, bitmapImage.height, CvType.CV_8UC1)
-        Utils.bitmapToMat(bitmapImage, tmpMat)
-        Imgproc.cvtColor(tmpMat, tmpMat, Imgproc.COLOR_RGB2GRAY)
-        return tmpMat
+        val grayMat = Mat(bitmapImage.width, bitmapImage.height, CvType.CV_8UC1)
+        Utils.bitmapToMat(bitmapImage, grayMat)
+        Imgproc.cvtColor(grayMat, grayMat, Imgproc.COLOR_RGB2GRAY)
+        return grayMat
     }
 
     fun findLargestContourInImage(context: Context, grayScaleImage: Mat): MatOfPoint? {
@@ -200,8 +204,10 @@ class SudokuImageProcessor {
      * Transform the Sudoku grid to a standard size and perspective.
      */
     fun transformSudokuGrid(context: Context, grayScaleCroppedImage: Mat, srcPoints: MatOfPoint2f): Mat {
+        // Höhere Auflösung für mehr Details
         val transformedImageWidth = 288.0
-        // Definiere die Zielpunkte für die Transformation
+
+        // Zielpunkte für die Transformation
         val dstPoints = MatOfPoint2f(
             Point(0.0, 0.0),
             Point(transformedImageWidth - 1, 0.0),
@@ -209,14 +215,62 @@ class SudokuImageProcessor {
             Point(0.0, transformedImageWidth - 1)
         )
 
-        // Berechne die Transformationsmatrix
+        // Transformationsmatrix berechnen
         val transformationMatrix = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
 
-        // Wende die Perspektivtransformation an
+        // Perspektivtransformation mit verbesserter Interpolation
         val transformedGrid = Mat()
-        Imgproc.warpPerspective(grayScaleCroppedImage, transformedGrid, transformationMatrix, Size(transformedImageWidth, transformedImageWidth))
+        Imgproc.warpPerspective(
+            grayScaleCroppedImage,
+            transformedGrid,
+            transformationMatrix,
+            Size(transformedImageWidth, transformedImageWidth),
+            Imgproc.INTER_CUBIC // Verbesserte Interpolation für schärfere Ergebnisse
+        )
 
-        return transformedGrid
+        // Hintergrund aufhellen mit Gamma-Korrektur
+        val gammaImg = Mat()
+        transformedGrid.convertTo(gammaImg, CvType.CV_32F, 1.0/255.0, 0.0)
+        val gamma = 0.7 // Wert < 1 hellt auf, > 1 verdunkelt
+        Core.pow(gammaImg, gamma, gammaImg)
+        gammaImg.convertTo(gammaImg, CvType.CV_8U, 255.0, 0.0)
+
+        // Bildschärfung anwenden
+        val sharpened = Mat()
+        val kernel = Mat(3, 3, CvType.CV_32F)
+        kernel.put(0, 0, -1.0, -1.0, -1.0)
+        kernel.put(1, 0, -1.0, 9.0, -1.0)
+        kernel.put(2, 0, -1.0, -1.0, -1.0)
+        Imgproc.filter2D(gammaImg, sharpened, -1, kernel)
+
+//        // CLAHE (Contrast Limited Adaptive Histogram Equalization) anwenden
+//        val clahe = Imgproc.createCLAHE(3.0, Size(8.0, 8.0))
+//        val claheResult = Mat()
+//        clahe.apply(sharpened, claheResult)
+//
+//        // Adaptives Thresholding für lokale Kontrastverbesserung
+//        val binarized = Mat()
+//        Imgproc.adaptiveThreshold(
+//            claheResult,
+//            binarized,
+//            255.0,
+//            Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
+//            Imgproc.THRESH_BINARY_INV,
+//            11,
+//            2.0
+//        )
+//
+//        // Morphologische Operationen zum Entfernen von Rauschen
+//        val element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0))
+//        val cleaned = Mat()
+//        // Hier war vorher Imgproc.MORPH_OPEN, aber MORPH_CLOSE könnte besser sein
+//        Imgproc.morphologyEx(binarized, cleaned, Imgproc.MORPH_CLOSE, element)
+//
+//        // Invertieren, um hellen Hintergrund und dunkle Ziffern zu erhalten
+//        val result = Mat()
+//        Core.bitwise_not(cleaned, result)
+
+        return sharpened
     }
 
     /**
@@ -230,7 +284,6 @@ class SudokuImageProcessor {
             for (j in 0 until 9) {
                 val cell = Mat(transformedSudokuGrid, Rect(j * cellSize, i * cellSize, cellSize, cellSize))
                 sudokuCells.add(cell)
-                ImageHelper.saveMatToFile(context, cell, "sudoku_cell_${i}_${j}.png")
             }
         }
 
@@ -243,34 +296,169 @@ class SudokuImageProcessor {
         return bitmap
     }
 
-    @Throws(ImageProcessingException::class)
+    fun sharpenImage(mat: Mat): Mat {
+        val sharpened = Mat()
+        val kernel = Mat(3, 3, CvType.CV_32F, Scalar(-1.0))
+        kernel.put(1, 1, 9.0)
+        Imgproc.filter2D(mat, sharpened, mat.depth(), kernel)
+        return sharpened
+    }
+
     suspend fun extractNumbersFromCells(
+        context: Context,
         textRecognizer: TextRecognizer,
-        cells: List<InputImage>
-    ): List<RecognizedNumberOfCell> = coroutineScope {
+        cells: List<InputImage>,
+        originalMats: List<Mat>
+    ): List<CellRegocnitionResult> = coroutineScope {
         cells.mapIndexed { index, cell ->
-            async(Dispatchers.IO) {
-                try {
-                    val result = textRecognizer.process(cell).await()
+            async(Dispatchers.Default) {
+                Log.i("MYAPP", "Index: $index, Threadname: ${Thread.currentThread().name}")
+                val confidenceMap = mutableMapOf<String, MutableList<Float>>()
 
-                    if (result == null) {
-                        throw ImageProcessingException("No result")
-                    } else if (result.textBlocks.isEmpty() || result.textBlocks[0].lines.isEmpty()) {
-                        RecognizedNumberOfCell(index, "", 0.0f)
-                    } else if (result.textBlocks[0].lines[0].confidence < 0.7) {
-                        throw ImageProcessingException("Confidence on index $index with text ${result.textBlocks[0].lines[0].text} too low: ${result.textBlocks[0].lines[0].confidence}")
-                    } else {
-                        val firstLineOfFirstBlock = result.textBlocks[0].lines[0]
-                        val text = firstLineOfFirstBlock.text.trim()
-                        val confidence = firstLineOfFirstBlock.confidence
-                        RecognizedNumberOfCell(index, text, confidence)
+                for (attempt in 1..6) {
+                    try {
+                        val inputImage = if (attempt == 1) {
+                            cell // Originalbild beim ersten Versuch
+                        } else {
+                            // Geschärftes Bild oder andere Varianten für weitere Versuche
+                            val processedMat = when (attempt) {
+                                2 -> sharpenImage(originalMats[index])
+                                3 -> applyCLAHE(originalMats[index])
+                                4 -> invertImage(originalMats[index])
+                                5 -> applyMorphology(originalMats[index], Imgproc.MORPH_OPEN)
+                                6 -> applyMorphology(originalMats[index], Imgproc.MORPH_CLOSE)
+                                else -> originalMats[index]
+                            }
+                            val processedBitmap = matToBitmap(processedMat)
+                            InputImage.fromBitmap(processedBitmap, 0)
+                        }
+
+                        val result = textRecognizer.process(inputImage).await()
+
+                        if (result != null && result.textBlocks.isNotEmpty() &&
+                            result.textBlocks[0].lines.isNotEmpty()) {
+
+                            val firstLine = result.textBlocks[0].lines[0]
+                            val text = firstLine.text.trim()
+                            val confidence = firstLine.confidence
+
+                            if (text.length == 1 && text.matches(Regex("[1-9]"))) {
+                                confidenceMap.getOrPut(text) { mutableListOf() }.add(confidence)
+
+                                if (confidence >= 0.75f) {
+                                    return@async CellRegocnitionResult(index, text, confidence)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.i("MYAPP", "Fehler bei Versuch $attempt für Zelle $index: ${e.message}")
                     }
-
-                } catch (e: Exception) {
-                    Log.i("SudokuImageProcessor", "Error extracting number from cell with index ${index}: ${e.message}")
-                    throw ImageProcessingException("Failed to extract number from cell: ${e.message}")
                 }
+
+                // Wenn keine Confidence über 0.8 erreicht wurde, berechne den Durchschnitt
+                val bestGuess = confidenceMap.maxByOrNull { (_, confidences) ->
+                    confidences.average()
+                }
+
+                if (bestGuess != null) {
+                    val (text, confidences) = bestGuess
+                    val averageConfidence = confidences.average().toFloat()
+                    return@async CellRegocnitionResult(index, text, averageConfidence)
+                }
+
+                return@async CellRegocnitionResult(index, "", 0.0f)
             }
         }.map { it.await() }
     }
+
+    fun applyCLAHE(mat: Mat): Mat {
+        val clahe = Imgproc.createCLAHE(3.0, Size(8.0, 8.0))
+        val result = Mat()
+        clahe.apply(mat, result)
+        return result
+    }
+
+    fun invertImage(mat: Mat): Mat {
+        val inverted = Mat()
+        Core.bitwise_not(mat, inverted)
+        return inverted
+    }
+
+    fun applyMorphology(mat: Mat, operation: Int): Mat {
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
+        val result = Mat()
+        Imgproc.morphologyEx(mat, result, operation, kernel)
+        return result
+    }
+
+//    @Throws(ImageProcessingException::class)
+//    suspend fun extractNumbersFromCells(
+//        context: Context,
+//        textRecognizer: TextRecognizer,
+//        cells: List<InputImage>,
+//        originalMats: List<Mat> // Neue Parameter für die ursprünglichen Mat-Objekte
+//    ): List<RecognizedNumberOfCell> = coroutineScope {
+//        cells.mapIndexed { index, cell ->
+//            async(Dispatchers.IO) {
+//                try {
+//                    // Erster Versuch mit dem ursprünglichen Bild
+//                    val result = textRecognizer.process(cell).await()
+//
+//                    if (result != null && result.textBlocks.isNotEmpty() &&
+//                        result.textBlocks[0].lines.isNotEmpty()) {
+//
+//                        val firstLine = result.textBlocks[0].lines[0]
+//                        val text = firstLine.text.trim()
+//                        val confidence = firstLine.confidence
+//
+//                        // Prüfe, ob es eine einzelne Ziffer zwischen 1-9 ist
+//                        val isValidDigit = text.length == 1 && text.matches(Regex("[1-9]"))
+//
+//                        // Wenn wir ein gültiges Ergebnis mit guter Confidence haben
+//                        if (isValidDigit && confidence >= 0.7f) {
+//                            Log.i("MYAPP", "Erkannte Zahl: $text mit Confidence: $confidence (erster Versuch)")
+//                            return@async RecognizedNumberOfCell(index, text, confidence)
+//                        }
+//                    }
+//
+//                    Log.i("MYAPP", "Erster Versuch fehlgeschlagen, versuche geschärftes Bild bei Zelle $index")
+//
+//                    // Zweiter Versuch mit geschärftem Bild
+//                    val sharpenedMat = sharpenImage(originalMats[index])
+//                    val sharpenedBitmap = matToBitmap(sharpenedMat)
+//                    val sharpenedInputImage = InputImage.fromBitmap(sharpenedBitmap, 0)
+//
+//                    val sharpenedResult = textRecognizer.process(sharpenedInputImage).await()
+//
+//                    if (sharpenedResult != null && sharpenedResult.textBlocks.isNotEmpty() &&
+//                        sharpenedResult.textBlocks[0].lines.isNotEmpty()) {
+//
+//                        val firstLine = sharpenedResult.textBlocks[0].lines[0]
+//                        val text = firstLine.text.trim()
+//                        val confidence = firstLine.confidence
+//
+//                        // Prüfe, ob es eine einzelne Ziffer zwischen 1-9 ist
+//                        val isValidDigit = text.length == 1 && text.matches(Regex("[1-9]"))
+//
+//                        // Wenn wir ein gültiges Ergebnis mit guter Confidence haben
+//                        if (isValidDigit && confidence >= 0.6f) {
+//                            Log.i("MYAPP", "Erkannte Zahl: $text mit Confidence: $confidence (geschärftes Bild)")
+//                            return@async RecognizedNumberOfCell(index, text, confidence)
+//                        }
+//                    }
+//
+//                    // Wenn beide Versuche fehlschlagen, werfen wir eine Exception
+//                    throw ImageProcessingException("Texterkennung in Zelle $index mit ausreichender Confidence fehlgeschlagen")
+//
+//                } catch (e: ImageProcessingException) {
+//                    throw e // ImageProcessingExceptions weiterleiten
+//                } catch (e: Exception) {
+//                    Log.i("MYAPP", "Fehler bei Zellenerkennung $index: ${e.message}")
+//                    throw ImageProcessingException("Fehler bei Verarbeitung von Zelle $index: ${e.message}", e)
+//                } finally {
+//                    ImageHelper.saveMatToFile(context, originalMats[index], "sudoku_cell_$index.png")
+//                }
+//            }
+//        }.map { it.await() }
+//    }
 }

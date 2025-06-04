@@ -1,5 +1,7 @@
 package net.tomczek.ar.puzzle.solver
 
+import net.tomczek.ar.puzzle.solver.composables.sudoku.splitSudokuBoardForPresentation
+import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -22,15 +24,15 @@ class SudokuGridTest {
                 0, 0, 0, 0, 8, 0, 0, 7, 9
             ),
             originalValuesMask = listOf(
-                true,true,false,false,true,false,false,false,false,
-                true,false,false,true,true,true,false,false,false,
-                false,true,true,false,false,false,false,true,false,
-                true,false,false,false,true,false,false,false,true,
-                true,false,false,true,false,true,false,false,true,
-                true,false,false,false,true,false,false,false,true,
-                false,true,false,false,false,false,true,true,false,
-                false,false,false,true,true,true,false,false,true,
-                false,false,false,false,true,false,false,true,true
+                true, true, false, false, true, false, false, false, false,
+                true, false, false, true, true, true, false, false, false,
+                false, true, true, false, false, false, false, true, false,
+                true, false, false, false, true, false, false, false, true,
+                true, false, false, true, false, true, false, false, true,
+                true, false, false, false, true, false, false, false, true,
+                false, true, false, false, false, false, true, true, false,
+                false, false, false, true, true, true, false, false, true,
+                false, false, false, false, true, false, false, true, true
             )
         )
 
