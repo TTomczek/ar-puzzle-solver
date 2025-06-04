@@ -118,7 +118,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
     val arCameraViewModel: ArCameraViewModel = remember { ArCameraViewModel() }
     val coroutineScope = rememberCoroutineScope()
     val navigationDrawerState = rememberDrawerState(DrawerValue.Closed)
-    val pagerState = rememberPagerState(0, 0.5f) { arPuzzleSolverViewModel.puzzles.size }
+    val pagerState = rememberPagerState(0, 0.0f) { arPuzzleSolverViewModel.puzzles.size }
     var showSolution by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(

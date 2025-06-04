@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -258,9 +259,11 @@ fun SudokuCell(
             text = text,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable(true) { cellClick(index) },
+                .clickable(true) { cellClick(index) }
+                .wrapContentSize(Alignment.Center),  // Sorgt für perfekte Zentrierung
             color = if (isOriginal) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge  // Größere Schriftart für bessere Sichtbarkeit
         )
     }
 }
