@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +50,7 @@ fun SudokuBoardPagePreview() {
         data = """{"board":[8,9,0,7,3,0,4,6,0,0,4,0,2,0,8,3,5,7,2,0,3,0,0,0,8,9,2,4,6,6,3,5,7,2,0,8,0,0,0,9,8,0,0,0,5,5,1,0,4,0,0,0,3,9,6,8,0,0,0,6,0,7,0,0,7,1,8,4,3,0,0,6,0,3,5,1,0,0,0,8,4],"originalValuesMask":[true,true,false,true,true,false,true,true,false,false,true,false,true,false,true,true,true,true,true,false,true,false,false,false,true,true,true,true,true,true,true,true,true,true,false,true,false,false,false,true,true,false,false,false,true,true,true,false,true,false,false,false,true,true,true,true,false,false,false,true,false,true,false,false,true,true,true,true,true,false,false,true,false,true,true,true,false,false,false,true,true]}""",
         scanDate = System.currentTimeMillis()
     )
-    ArpuzzlesolverTheme {
+    ArpuzzlesolverTheme(darkTheme = true) {
         SudokuBoardPage(puzzle, showSolution = false)
     }
 }
@@ -75,7 +76,7 @@ fun SudokuBoardPage(
         }
     }
 
-    Surface {
+    Surface(color = Color.Transparent) {
         Column {
             Text(
                 convertMillisToDateString(sudokuBoard.scanDate),
@@ -89,7 +90,11 @@ fun SudokuBoardPage(
                 Log.i("MYAPP", "Clicked on cell: $it")
                 dialogData = Pair(it, sudokuBoard.board[it])
             }
-            Text(stringResource(R.string.sudoku_tap_to_edit), modifier = Modifier.padding(8.dp))
+            Text(
+                stringResource(R.string.sudoku_tap_to_edit),
+                modifier = Modifier.padding(8.dp),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
     }
 
@@ -133,7 +138,11 @@ fun getUpdatedSudokuBoard(
 }
 
 @Composable
-fun SudokuCorrectionDialog(initialValue: Int, dismissRequest: () -> Unit, valueChange: (Int, Boolean) -> Unit) {
+fun SudokuCorrectionDialog(
+    initialValue: Int,
+    dismissRequest: () -> Unit,
+    valueChange: (Int, Boolean) -> Unit
+) {
     Dialog(
         onDismissRequest = dismissRequest
     ) {

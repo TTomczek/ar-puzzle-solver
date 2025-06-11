@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -137,7 +138,7 @@ fun SudokuGrid(board: SudokuBoard, showSolution: Boolean = false, cellClick: (In
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-            .background(color = MaterialTheme.colorScheme.background)
+//            .background(color = MaterialTheme.colorScheme.background)
     ) {
         subGrids.forEachIndexed { _, subGridsOfRow ->
             Row(
@@ -166,7 +167,6 @@ fun SudokuSubGridPreview() {
     ArpuzzlesolverTheme {
         SudokuSubGrid(
             modifier = Modifier
-                .background(color = MaterialTheme.colorScheme.background)
                 .border(BorderStroke(2.dp, MaterialTheme.colorScheme.inverseSurface))
                 .aspectRatio(1f),
             showSolution = true,
@@ -230,7 +230,7 @@ fun SudokuCellShowSolutionPreview() {
     ArpuzzlesolverTheme {
         SudokuCell(
             SudokuGridCellConfig(2, 5, false),
-            Modifier.background(color = MaterialTheme.colorScheme.surface),
+            Modifier.background(color = Color.Transparent),
             showSolution = true
         )
     }
@@ -247,7 +247,7 @@ fun SudokuCell(
     Box(
         modifier = modifier
             .border(BorderStroke(1.dp, MaterialTheme.colorScheme.inverseSurface)),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         val text = when {
             value == 0 -> ""

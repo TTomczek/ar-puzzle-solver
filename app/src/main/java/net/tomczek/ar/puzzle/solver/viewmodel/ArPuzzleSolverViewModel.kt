@@ -28,7 +28,10 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
     var puzzles by mutableStateOf(listOf<PuzzleEntity>())
         private set
 
-    fun savePuzzle(puzzle: PuzzleEntity) {
+    var selectedPuzzle by mutableStateOf<PuzzleEntity?>(null)
+        private set
+
+    suspend fun savePuzzle(puzzle: PuzzleEntity): Long? {
         val datedPuzzle = PuzzleEntity(
             id = puzzle.id,
             type = puzzle.type,
@@ -36,15 +39,14 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
             scanDate = System.currentTimeMillis()
         )
         Log.i("MYAPP", "Saving puzzle: $datedPuzzle")
-        viewModelScope.launch {
-            val savedPuzzle = puzzleDao.insertPuzzle(datedPuzzle)
-            if (savedPuzzle != null) {
-                val updatedPuzzles = puzzleDao.getAllPuzzles()
-                puzzles = updatedPuzzles.toMutableList()
-            } else {
-                Log.e("ME", "Failed to save puzzle")
-            }
+        val savedPuzzle = puzzleDao.insertPuzzle(datedPuzzle)
+        if (savedPuzzle != null) {
+            val updatedPuzzles = puzzleDao.getAllPuzzles()
+            puzzles = updatedPuzzles.toMutableList()
+        } else {
+            Log.e("ME", "Failed to save puzzle")
         }
+        return savedPuzzle
     }
 
     fun deletePuzzle(puzzle: PuzzleEntity) {
@@ -62,6 +64,16 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
             puzzleDao.updatePuzzle(puzzle)
             val updatedPuzzles = puzzleDao.getAllPuzzles()
             puzzles = updatedPuzzles.toMutableList()
+        }
+    }
+
+    fun selectPuzzle(puzzle: Long?) {
+        Log.i("MYAPP", "Selecting puzzle: $puzzle")
+        if (puzzle == null) {
+            selectedPuzzle = null
+        } else {
+            selectedPuzzle = puzzles.find { it.id == puzzle }
+            Log.i("MYAPP", "Selected puzzle: $selectedPuzzle")
         }
     }
 

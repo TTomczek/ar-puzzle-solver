@@ -2,21 +2,27 @@ package net.tomczek.ar.puzzle.solver
 
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -33,7 +39,6 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.ComposeNode
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,31 +48,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.google.android.filament.Engine
-import com.google.android.filament.EntityManager
-import com.google.android.filament.IndexBuffer
-import com.google.android.filament.MaterialInstance
-import com.google.android.filament.RenderableManager
-import com.google.android.filament.VertexBuffer
+import com.google.ar.core.Anchor
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import dagger.hilt.android.AndroidEntryPoint
-import dev.romainguy.kotlin.math.Float3
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.addAugmentedImage
+import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.arcore.getUpdatedAugmentedImages
 import io.github.sceneview.ar.rememberARCameraNode
 import io.github.sceneview.loaders.MaterialLoader
-import io.github.sceneview.math.Box
-import io.github.sceneview.math.Position
-import io.github.sceneview.model.ModelInstance
 import io.github.sceneview.node.Node
 import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
@@ -85,14 +83,6 @@ import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 import net.tomczek.ar.puzzle.solver.viewmodel.ArCameraViewModel
 import net.tomczek.ar.puzzle.solver.viewmodel.ArPuzzleSolverViewModel
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import androidx.core.graphics.createBitmap
-import com.google.ar.core.Anchor
-import io.github.sceneview.SceneView
-import io.github.sceneview.ar.arcore.createAnchorOrNull
-import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuGrid
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.Sudoku3dModelStrategy
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -112,7 +102,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolverViewModel) {
     val arCameraViewModel: ArCameraViewModel = remember { ArCameraViewModel() }
@@ -136,36 +126,86 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                 ) { pageIndex ->
                     val puzzle = arPuzzleSolverViewModel.puzzles[pageIndex]
 
-                    when (puzzle.type) {
-                        "sudoku" -> {
-                            SudokuBoardPage(puzzle, showSolution) { updatedPuzzle ->
-                                arPuzzleSolverViewModel.updatePuzzle(updatedPuzzle)
+                    Column {
+
+                        Box(
+                            modifier = Modifier
+                                .then(
+                                    if (puzzle.id == arPuzzleSolverViewModel.selectedPuzzle?.id) Modifier.border(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.primary
+                                    ) else Modifier
+                                )
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = {
+                                        arPuzzleSolverViewModel.selectPuzzle(puzzle.id)
+                                        arCameraViewModel.updateCameraPaused(false)
+                                        coroutineScope.launch {
+                                            navigationDrawerState.close()
+                                        }
+                                    }
+                                )
+                        ) {
+                            when (puzzle.type) {
+                                "sudoku" -> {
+                                    SudokuBoardPage(puzzle, showSolution) { updatedPuzzle ->
+                                        arPuzzleSolverViewModel.updatePuzzle(updatedPuzzle)
+                                    }
+                                }
+
+                                else -> {
+                                    Text(text = "Unsupported puzzle type: ${puzzle.type}", modifier = Modifier.fillMaxSize())
+                                }
                             }
                         }
-
-                        else -> {
-                            Text(text = "Unsupported puzzle type: ${puzzle.type}")
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Button(onClick = {
+                                if (puzzle.id != arPuzzleSolverViewModel.selectedPuzzle?.id) {
+                                    arPuzzleSolverViewModel.selectPuzzle(puzzle.id)
+                                } else {
+                                    arPuzzleSolverViewModel.selectPuzzle(null)
+                                }
+                            }) {
+                                val textDecoration: TextDecoration =
+                                    if (puzzle.id != arPuzzleSolverViewModel.selectedPuzzle?.id) TextDecoration.None else TextDecoration.LineThrough
+                                Text("AR", textDecoration = textDecoration)
+                            }
+                            Spacer(Modifier.width(15.dp))
+                            Button(onClick = {
+                                arPuzzleSolverViewModel.deletePuzzle(puzzle)
+                                coroutineScope.launch {
+                                    navigationDrawerState.close()
+                                    arCameraViewModel.updateCameraPaused(false)
+                                }
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                )
+                            }
                         }
-                    }
-                    Button(onClick = {
-                        arPuzzleSolverViewModel.deletePuzzle(puzzle)
-                        coroutineScope.launch {
-                            navigationDrawerState.close()
-                            arCameraViewModel.updateCameraPaused(false)
-                        }
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Delete",
+                        Text(
+                            text = stringResource(
+                                R.string.page,
+                                pageIndex + 1,
+                                arPuzzleSolverViewModel.puzzles.size
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
                 Button(
                     onClick = {
                         showSolution = !showSolution
-                        val currentPage = pagerState.currentPage
-                        val currentPuzzle = arPuzzleSolverViewModel.puzzles[currentPage]
-
                     },
                     modifier = Modifier
                         .padding(16.dp)
@@ -181,10 +221,11 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
         }) {
         ArCameraView(
             resources,
-            arCameraViewModel
+            arCameraViewModel,
         ) { puzzle ->
-            arPuzzleSolverViewModel.savePuzzle(puzzle)
             coroutineScope.launch {
+                val savedPuzzleId = arPuzzleSolverViewModel.savePuzzle(puzzle)
+                arPuzzleSolverViewModel.selectPuzzle(savedPuzzleId)
                 arCameraViewModel.updateCameraPaused(true)
                 navigationDrawerState.open()
             }
@@ -207,6 +248,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
 fun ArCameraView(
     resources: Resources,
     viewModel: ArCameraViewModel,
+    selectedPuzzle: PuzzleEntity? = null,
     foundPuzzle: (PuzzleEntity) -> Unit
 ) {
     val engine = rememberEngine()
@@ -219,10 +261,17 @@ fun ArCameraView(
     val context = LocalContext.current
     var arSceneSession: Session? = remember { null }
 
+    LaunchedEffect(selectedPuzzle) {
+        Log.i("MYAPP", "Selected puzzle changed: $selectedPuzzle")
+        childNodes.clear()
+    }
+
     LaunchedEffect(viewModel.cameraPaused) {
         if (viewModel.cameraPaused) {
+            Log.i("MYAPP", "Pausing AR session")
             arSceneSession?.pause()
         } else {
+            Log.i("MYAPP", "Resuming AR session")
             arSceneSession?.resume()
         }
     }
@@ -248,20 +297,24 @@ fun ArCameraView(
         },
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
-                if (augmentedImage.trackingState != TrackingState.TRACKING) {
-                    return@forEach
-                }
-
-                analyzeImage(context, session, frame, viewModel, augmentedImage.name) {
-                    foundPuzzle(it)
+                if (selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
                     augmentedImage.createAnchorOrNull(augmentedImage.centerPose)?.let { anchor ->
-                        Log.i("MYAPP", "Found puzzle: ${it}, creating 3D model")
-                        create3dModelByType(it, anchor, context, materialLoader, engine)?.let {
-                            Log.i("MYAPP", "Created 3D model for puzzle: ${it.name}")
+                        create3dModelByType(
+                            selectedPuzzle,
+                            anchor,
+                            context,
+                            materialLoader,
+                            engine
+                        )?.let {
                             childNodes += it
                         }
                     }
+                }
 
+                if (selectedPuzzle == null) {
+                    analyzeImage(context, session, frame, viewModel, augmentedImage.name) {
+                        foundPuzzle(it)
+                    }
                 }
             }
         },
@@ -332,7 +385,13 @@ fun analyzeImage(
     }
 }
 
-fun create3dModelByType(puzzleEntity: PuzzleEntity, anchor: Anchor, context: Context, materialLoader: MaterialLoader, engine: Engine): Node? {
+fun create3dModelByType(
+    puzzleEntity: PuzzleEntity,
+    anchor: Anchor,
+    context: Context,
+    materialLoader: MaterialLoader,
+    engine: Engine
+): Node? {
     return ModelCreator.getModel(puzzleEntity, anchor, context, materialLoader, engine)
 }
 
@@ -373,5 +432,13 @@ fun processSudokuImageInCoroutine(
                 finishedProcessing(null)
             }
         }
+    }
+}
+
+fun Modifier.conditional(condition: Boolean, modifier: Modifier.() -> Modifier): Modifier {
+    return if (condition) {
+        then(modifier(Modifier))
+    } else {
+        this
     }
 }
