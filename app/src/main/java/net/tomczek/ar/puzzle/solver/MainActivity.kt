@@ -60,6 +60,7 @@ import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import dagger.hilt.android.AndroidEntryPoint
+import io.github.sceneview.SceneView
 import io.github.sceneview.ar.ARScene
 import io.github.sceneview.ar.arcore.addAugmentedImage
 import io.github.sceneview.ar.arcore.createAnchorOrNull
@@ -67,12 +68,14 @@ import io.github.sceneview.ar.arcore.getUpdatedAugmentedImages
 import io.github.sceneview.ar.rememberARCameraNode
 import io.github.sceneview.loaders.MaterialLoader
 import io.github.sceneview.node.Node
+import io.github.sceneview.node.ViewNode2
 import io.github.sceneview.rememberCollisionSystem
 import io.github.sceneview.rememberEngine
 import io.github.sceneview.rememberMaterialLoader
 import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import io.github.sceneview.rememberView
+import io.github.sceneview.rememberViewNodeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -261,6 +264,9 @@ fun ArCameraView(
     val collisionSystem = rememberCollisionSystem(view)
     val context = LocalContext.current
     var arSceneSession: Session? = remember { null }
+    val viewNodeWindowManager = rememberViewNodeManager(context, creator = {
+        SceneView.createViewNodeManager(context)
+    })
 
     LaunchedEffect(selectedPuzzle) {
         Log.i("MYAPP", "Selected puzzle changed: $selectedPuzzle")
@@ -284,6 +290,7 @@ fun ArCameraView(
         materialLoader = materialLoader,
         modelLoader = modelLoader,
         view = view,
+        viewNodeWindowManager = viewNodeWindowManager,
         cameraNode = cameraNode,
         collisionSystem = collisionSystem,
         childNodes = childNodes,
@@ -298,13 +305,13 @@ fun ArCameraView(
         },
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
-                Log.i("MYAPP", "Augmented image updated: ${augmentedImage.name}, tracking state: ${augmentedImage.trackingState}, selected puzzle: ${selectedPuzzle?.type}")
                 if (selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
+                    Log.i("MYAPP", "Creating model for augmented image: ${augmentedImage.name}")
                     augmentedImage.createAnchorOrNull(augmentedImage.centerPose)?.let { anchor ->
                         create3dModelByType(
                             selectedPuzzle,
                             anchor,
-                            context,
+                            viewNodeWindowManager,
                             materialLoader,
                             engine
                         )?.let {
@@ -390,11 +397,11 @@ fun analyzeImage(
 fun create3dModelByType(
     puzzleEntity: PuzzleEntity,
     anchor: Anchor,
-    context: Context,
+    viewNodeWindowManager: ViewNode2.WindowManager,
     materialLoader: MaterialLoader,
     engine: Engine
 ): Node? {
-    return ModelCreator.getModel(puzzleEntity, anchor, context, materialLoader, engine)
+    return ModelCreator.getModel(puzzleEntity, anchor, viewNodeWindowManager, materialLoader, engine)
 }
 
 fun processSudoku(

@@ -11,11 +11,12 @@ import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.loaders.MaterialLoader
-import io.github.sceneview.node.ImageNode
-import net.tomczek.ar.puzzle.solver.ImageHelper
+import io.github.sceneview.math.Scale
+import io.github.sceneview.node.ViewNode2
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuGrid
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 import net.tomczek.ar.puzzle.solver.puzzle.types.ArModelStrategy
+import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 
 object Sudoku3dModelStrategy : ArModelStrategy {
     const val MODEL_TYPE = "sudoku"
@@ -24,23 +25,24 @@ object Sudoku3dModelStrategy : ArModelStrategy {
         return entity.type == MODEL_TYPE
     }
 
-    override fun createModel(entity: PuzzleEntity, anchor: Anchor, context: Context, materialLoader: MaterialLoader,engine: Engine): AnchorNode? {
+    override fun createModel(entity: PuzzleEntity, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine): AnchorNode? {
         if (entity.type != MODEL_TYPE) {
             return null
         }
 
         val sudokuBoard = SudokuBoard.fromPuzzle(entity)
-        val sudokuGridBitmap = renderComposableToBitmap(context, 800, 800) {
-            SudokuGrid(sudokuBoard)
+        val viewNode = ViewNode2(engine, viewNodeWindowManager, materialLoader) {
+            ArpuzzlesolverTheme {
+                SudokuGrid(sudokuBoard)
+            }
+        }.apply {
+            scale = Scale(0.1f, 0.1f, 0.1f)
         }
-        ImageHelper.saveBitmapToFile(context, sudokuGridBitmap, "sudoku_grid.png")
 
-        val imageNode = ImageNode(
-            materialLoader = materialLoader,
-            bitmap = sudokuGridBitmap
-        )
-        val anchorNode = AnchorNode(engine, anchor)
-        anchorNode.addChildNode(imageNode)
+        val anchorNode = AnchorNode(engine, anchor).apply {
+            name = "sudoku"
+        }
+        anchorNode.addChildNode(viewNode)
 
         return anchorNode
     }
