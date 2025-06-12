@@ -1,6 +1,7 @@
 package net.tomczek.ar.puzzle.solver
 
 import android.content.Context
+import android.util.Log
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import io.github.sceneview.ar.node.AnchorNode

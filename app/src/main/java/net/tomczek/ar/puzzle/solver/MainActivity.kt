@@ -222,6 +222,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
         ArCameraView(
             resources,
             arCameraViewModel,
+            arPuzzleSolverViewModel.selectedPuzzle
         ) { puzzle ->
             coroutineScope.launch {
                 val savedPuzzleId = arPuzzleSolverViewModel.savePuzzle(puzzle)
@@ -297,6 +298,7 @@ fun ArCameraView(
         },
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
+                Log.i("MYAPP", "Augmented image updated: ${augmentedImage.name}, tracking state: ${augmentedImage.trackingState}, selected puzzle: ${selectedPuzzle?.type}")
                 if (selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
                     augmentedImage.createAnchorOrNull(augmentedImage.centerPose)?.let { anchor ->
                         create3dModelByType(
