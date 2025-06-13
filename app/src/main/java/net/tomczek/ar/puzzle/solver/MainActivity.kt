@@ -85,6 +85,7 @@ import kotlinx.coroutines.withContext
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuBoardPage
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
+import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuImageProcessor
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 import net.tomczek.ar.puzzle.solver.viewmodel.ArCameraViewModel
 import net.tomczek.ar.puzzle.solver.viewmodel.ArPuzzleSolverViewModel

@@ -1,4 +1,4 @@
-package net.tomczek.ar.puzzle.solver
+package net.tomczek.ar.puzzle.solver.puzzle.types.sudoku
 
 
 import android.content.Context
@@ -27,7 +27,8 @@ import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.tasks.await
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
+import net.tomczek.ar.puzzle.solver.ImageConverter
+import net.tomczek.ar.puzzle.solver.ImageProcessingException
 import org.opencv.core.Core
 
 
@@ -41,7 +42,7 @@ class SudokuImageProcessor {
     suspend fun processImage(context: Context, image: Image): SudokuBoard? {
 
         try {
-            val bitmapImage = ImageConverter.imageToBitmap(image)
+            val bitmapImage = ImageConverter.Companion.imageToBitmap(image)
             if (bitmapImage == null) {
                 throw ImageProcessingException("Failed to convert image to bitmap.")
             }
@@ -312,7 +313,6 @@ class SudokuImageProcessor {
     ): List<CellRegocnitionResult> = coroutineScope {
         cells.mapIndexed { index, cell ->
             async(Dispatchers.Default) {
-                Log.i("MYAPP", "Index: $index, Threadname: ${Thread.currentThread().name}")
                 val confidenceMap = mutableMapOf<String, MutableList<Float>>()
 
                 for (attempt in 1..6) {
@@ -390,75 +390,4 @@ class SudokuImageProcessor {
         Imgproc.morphologyEx(mat, result, operation, kernel)
         return result
     }
-
-//    @Throws(ImageProcessingException::class)
-//    suspend fun extractNumbersFromCells(
-//        context: Context,
-//        textRecognizer: TextRecognizer,
-//        cells: List<InputImage>,
-//        originalMats: List<Mat> // Neue Parameter für die ursprünglichen Mat-Objekte
-//    ): List<RecognizedNumberOfCell> = coroutineScope {
-//        cells.mapIndexed { index, cell ->
-//            async(Dispatchers.IO) {
-//                try {
-//                    // Erster Versuch mit dem ursprünglichen Bild
-//                    val result = textRecognizer.process(cell).await()
-//
-//                    if (result != null && result.textBlocks.isNotEmpty() &&
-//                        result.textBlocks[0].lines.isNotEmpty()) {
-//
-//                        val firstLine = result.textBlocks[0].lines[0]
-//                        val text = firstLine.text.trim()
-//                        val confidence = firstLine.confidence
-//
-//                        // Prüfe, ob es eine einzelne Ziffer zwischen 1-9 ist
-//                        val isValidDigit = text.length == 1 && text.matches(Regex("[1-9]"))
-//
-//                        // Wenn wir ein gültiges Ergebnis mit guter Confidence haben
-//                        if (isValidDigit && confidence >= 0.7f) {
-//                            Log.i("MYAPP", "Erkannte Zahl: $text mit Confidence: $confidence (erster Versuch)")
-//                            return@async RecognizedNumberOfCell(index, text, confidence)
-//                        }
-//                    }
-//
-//                    Log.i("MYAPP", "Erster Versuch fehlgeschlagen, versuche geschärftes Bild bei Zelle $index")
-//
-//                    // Zweiter Versuch mit geschärftem Bild
-//                    val sharpenedMat = sharpenImage(originalMats[index])
-//                    val sharpenedBitmap = matToBitmap(sharpenedMat)
-//                    val sharpenedInputImage = InputImage.fromBitmap(sharpenedBitmap, 0)
-//
-//                    val sharpenedResult = textRecognizer.process(sharpenedInputImage).await()
-//
-//                    if (sharpenedResult != null && sharpenedResult.textBlocks.isNotEmpty() &&
-//                        sharpenedResult.textBlocks[0].lines.isNotEmpty()) {
-//
-//                        val firstLine = sharpenedResult.textBlocks[0].lines[0]
-//                        val text = firstLine.text.trim()
-//                        val confidence = firstLine.confidence
-//
-//                        // Prüfe, ob es eine einzelne Ziffer zwischen 1-9 ist
-//                        val isValidDigit = text.length == 1 && text.matches(Regex("[1-9]"))
-//
-//                        // Wenn wir ein gültiges Ergebnis mit guter Confidence haben
-//                        if (isValidDigit && confidence >= 0.6f) {
-//                            Log.i("MYAPP", "Erkannte Zahl: $text mit Confidence: $confidence (geschärftes Bild)")
-//                            return@async RecognizedNumberOfCell(index, text, confidence)
-//                        }
-//                    }
-//
-//                    // Wenn beide Versuche fehlschlagen, werfen wir eine Exception
-//                    throw ImageProcessingException("Texterkennung in Zelle $index mit ausreichender Confidence fehlgeschlagen")
-//
-//                } catch (e: ImageProcessingException) {
-//                    throw e // ImageProcessingExceptions weiterleiten
-//                } catch (e: Exception) {
-//                    Log.i("MYAPP", "Fehler bei Zellenerkennung $index: ${e.message}")
-//                    throw ImageProcessingException("Fehler bei Verarbeitung von Zelle $index: ${e.message}", e)
-//                } finally {
-//                    ImageHelper.saveMatToFile(context, originalMats[index], "sudoku_cell_$index.png")
-//                }
-//            }
-//        }.map { it.await() }
-//    }
 }
