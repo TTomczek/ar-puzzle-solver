@@ -142,7 +142,6 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
     val coroutineScope = rememberCoroutineScope()
     val navigationDrawerState = rememberDrawerState(DrawerValue.Closed)
     val pagerState = rememberPagerState(0, 0.0f) { arPuzzleSolverViewModel.puzzles.size }
-    var showSolution by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
         drawerState = navigationDrawerState,
@@ -160,7 +159,6 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                     val puzzle = arPuzzleSolverViewModel.puzzles[pageIndex]
 
                     Column {
-
                         Box(
                             modifier = Modifier
                                 .then(
@@ -169,20 +167,10 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                                         MaterialTheme.colorScheme.primary
                                     ) else Modifier
                                 )
-                                .combinedClickable(
-                                    onClick = {},
-                                    onLongClick = {
-                                        arPuzzleSolverViewModel.selectPuzzle(puzzle.id)
-                                        arCameraViewModel.updateCameraPaused(false)
-                                        coroutineScope.launch {
-                                            navigationDrawerState.close()
-                                        }
-                                    }
-                                )
                         ) {
                             when (puzzle.type) {
                                 "sudoku" -> {
-                                    SudokuBoardPage(puzzle, showSolution) { updatedPuzzle ->
+                                    SudokuBoardPage(puzzle, arPuzzleSolverViewModel.showPuzzleSolution) { updatedPuzzle ->
                                         arPuzzleSolverViewModel.updatePuzzle(updatedPuzzle)
                                     }
                                 }
@@ -199,8 +187,10 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                             Button(onClick = {
                                 if (puzzle.id != arPuzzleSolverViewModel.selectedPuzzle?.id) {
                                     arPuzzleSolverViewModel.selectPuzzle(puzzle.id)
+                                    arCameraViewModel.updateStatusText(R.string.hint_projecting_puzzle)
                                 } else {
                                     arPuzzleSolverViewModel.selectPuzzle(null)
+                                    arCameraViewModel.updateStatusText(R.string.hint_searching_puzzle)
                                 }
                             }) {
                                 val textDecoration: TextDecoration =
@@ -238,14 +228,14 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                 }
                 Button(
                     onClick = {
-                        showSolution = !showSolution
+                        arPuzzleSolverViewModel.togglePuzzleSolution()
                     },
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.End)
                 ) {
                     Text(
-                        text = if (showSolution) stringResource(R.string.btn_hide_solution) else stringResource(
+                        text = if (arPuzzleSolverViewModel.showPuzzleSolution) stringResource(R.string.btn_hide_solution) else stringResource(
                             R.string.btn_show_solution
                         )
                     )
@@ -255,13 +245,15 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
         ArCameraView(
             resources,
             arCameraViewModel,
+            arPuzzleSolverViewModel,
             arPuzzleSolverViewModel.selectedPuzzle
         ) { puzzle ->
             coroutineScope.launch {
                 val savedPuzzleId = arPuzzleSolverViewModel.savePuzzle(puzzle)
                 arPuzzleSolverViewModel.selectPuzzle(savedPuzzleId)
+                arCameraViewModel.updateStatusText(R.string.hint_projecting_puzzle)
                 arCameraViewModel.updateCameraPaused(true)
-                navigationDrawerState.open()
+                pagerState.scrollToPage(0)
             }
         }
         Button(onClick = {
@@ -282,6 +274,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
 fun ArCameraView(
     resources: Resources,
     viewModel: ArCameraViewModel,
+    arPuzzleSolverViewModel: ArPuzzleSolverViewModel,
     selectedPuzzle: PuzzleEntity? = null,
     foundPuzzle: (PuzzleEntity) -> Unit
 ) {
@@ -338,7 +331,8 @@ fun ArCameraView(
                             anchor,
                             viewNodeWindowManager,
                             materialLoader,
-                            engine
+                            engine,
+                            arPuzzleSolverViewModel.showPuzzleSolution
                         )?.let {
                             childNodes += it
                         }
@@ -351,12 +345,6 @@ fun ArCameraView(
                     }
                 }
             }
-        },
-        onSessionPaused = {
-            Log.i("MYAPP", "Session paused")
-        },
-        onSessionResumed = {
-            Log.i("MYAPP", "Session resumed")
         }
     )
     Text(
@@ -395,6 +383,7 @@ fun analyzeImage(
                     viewModel.setProcessingState(false)
                     try {
                         sudokuBoard.solve()
+                        Log.i("MYAPP", "Sudoku solved successfully")
                     } catch (e: Exception) {
                         Log.i("MYAPP", "Error solving sudoku: ${e.message}")
                     }
@@ -425,9 +414,10 @@ fun create3dModelByType(
     anchor: Anchor,
     viewNodeWindowManager: ViewNode2.WindowManager,
     materialLoader: MaterialLoader,
-    engine: Engine
+    engine: Engine,
+    showSolution: Boolean = false
 ): Node? {
-    return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine)
+    return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine, showSolution)
 }
 
 fun processSudoku(

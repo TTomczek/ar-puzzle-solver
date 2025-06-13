@@ -18,7 +18,6 @@ import net.tomczek.ar.puzzle.solver.persistence.PuzzleDao
 class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleDao): ViewModel() {
 
     init {
-        Log.i("MYAPP", "ArPuzzleSolverViewModel initialized")
         viewModelScope.launch {
             val savedPuzzles = puzzleDao.getAllPuzzles()
             puzzles = savedPuzzles.toMutableList()
@@ -31,6 +30,9 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
     var selectedPuzzle by mutableStateOf<PuzzleEntity?>(null)
         private set
 
+    var showPuzzleSolution by mutableStateOf(false)
+        private set
+
     suspend fun savePuzzle(puzzle: PuzzleEntity): Long? {
         val datedPuzzle = PuzzleEntity(
             id = puzzle.id,
@@ -38,7 +40,6 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
             data = puzzle.data,
             scanDate = System.currentTimeMillis()
         )
-        Log.i("MYAPP", "Saving puzzle: $datedPuzzle")
         val savedPuzzle = puzzleDao.insertPuzzle(datedPuzzle)
         if (savedPuzzle != null) {
             val updatedPuzzles = puzzleDao.getAllPuzzles()
@@ -50,7 +51,6 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
     }
 
     fun deletePuzzle(puzzle: PuzzleEntity) {
-        Log.i("MYAPP", "Deleting puzzle: $puzzle")
         viewModelScope.launch {
             puzzleDao.deletePuzzle(puzzle)
             val updatedPuzzles = puzzleDao.getAllPuzzles()
@@ -59,7 +59,6 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
     }
 
     fun updatePuzzle(puzzle: PuzzleEntity) {
-        Log.i("MYAPP", "Updating puzzle: $puzzle")
         viewModelScope.launch {
             puzzleDao.updatePuzzle(puzzle)
             val updatedPuzzles = puzzleDao.getAllPuzzles()
@@ -73,6 +72,10 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
         } else {
             selectedPuzzle = puzzles.find { it.id == puzzle }
         }
+    }
+
+    fun togglePuzzleSolution(state: Boolean? = null) {
+        showPuzzleSolution = state ?: !showPuzzleSolution
     }
 
 }

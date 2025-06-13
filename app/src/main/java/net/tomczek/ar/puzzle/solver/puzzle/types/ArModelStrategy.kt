@@ -10,5 +10,5 @@ import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 
 interface ArModelStrategy {
     fun canHandle(entity: PuzzleEntity): Boolean
-    fun createModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine): AnchorNode?
+    fun createModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine, showSolution: Boolean): AnchorNode?
 }

@@ -87,7 +87,6 @@ fun SudokuBoardPage(
             )
 
             SudokuGrid(sudokuBoard, showSolution = showSolution) {
-                Log.i("MYAPP", "Clicked on cell: $it")
                 dialogData = Pair(it, sudokuBoard.board[it])
             }
             Text(
@@ -105,7 +104,6 @@ fun SudokuBoardPage(
                 dialogData = null
             },
         ) { newValue, isOriginal ->
-            Log.i("MYAPP", "New value: $newValue, Original: $isOriginal")
             val updatedBoard = getUpdatedSudokuBoard(
                 sudokuBoard = sudokuBoard,
                 index = it.first,

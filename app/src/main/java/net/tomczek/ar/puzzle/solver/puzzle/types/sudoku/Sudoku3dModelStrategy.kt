@@ -28,15 +28,16 @@ object Sudoku3dModelStrategy : ArModelStrategy {
         return entity.type == MODEL_TYPE
     }
 
-    override fun createModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine): AnchorNode? {
+    override fun createModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine, showSolution: Boolean): AnchorNode? {
         if (entity.type != MODEL_TYPE) {
             return null
         }
 
         val sudokuBoard = SudokuBoard.fromPuzzle(entity)
+
         val viewNode = ViewNode2(engine, viewNodeWindowManager, materialLoader) {
             ArpuzzlesolverTheme {
-                SudokuGrid(sudokuBoard)
+                SudokuGrid(sudokuBoard, showSolution)
             }
         }.apply {
             // Scaling: X = extentX, Y = 0.01f (Dicke), Z = extentZ

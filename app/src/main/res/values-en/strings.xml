@@ -13,4 +13,5 @@
     <string name="page">Puzzle %1$s of %2$s</string>
     <string name="no_camera_permission">Camera permission required</string>
     <string name="open_settings">Open settings</string>
+    <string name="hint_projecting_puzzle">Projecting puzzle</string>
 </resources>

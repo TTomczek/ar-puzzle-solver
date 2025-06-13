@@ -18,9 +18,9 @@ object ModelCreator {
         Sudoku3dModelStrategy
     )
 
-    fun getModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader, engine: Engine): AnchorNode? {
+    fun getModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader, engine: Engine, showSolution: Boolean): AnchorNode? {
         val strategy = modelStrategies.firstOrNull { it.canHandle(entity) }
 
-        return strategy?.createModel(entity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine)
+        return strategy?.createModel(entity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine, showSolution)
     }
 }

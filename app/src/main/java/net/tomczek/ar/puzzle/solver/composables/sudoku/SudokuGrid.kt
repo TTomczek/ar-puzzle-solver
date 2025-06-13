@@ -138,7 +138,6 @@ fun SudokuGrid(board: SudokuBoard, showSolution: Boolean = false, cellClick: (In
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f)
-//            .background(color = MaterialTheme.colorScheme.background)
     ) {
         subGrids.forEachIndexed { _, subGridsOfRow ->
             Row(
@@ -230,6 +229,18 @@ fun SudokuCellShowSolutionPreview() {
     ArpuzzlesolverTheme {
         SudokuCell(
             SudokuGridCellConfig(2, 5, false),
+            Modifier.background(color = Color.Transparent),
+            showSolution = true
+        )
+    }
+}
+
+@Preview
+@Composable
+fun SudokuCellOriginalPreview() {
+    ArpuzzlesolverTheme {
+        SudokuCell(
+            SudokuGridCellConfig(2, 5, true),
             Modifier.background(color = Color.Transparent),
             showSolution = true
         )

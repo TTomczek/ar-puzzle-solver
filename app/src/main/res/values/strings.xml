@@ -12,4 +12,5 @@
     <string name="page">Rätsel %1$s von %2$s</string>
     <string name="no_camera_permission">Kameraberechtigung notwendig</string>
     <string name="open_settings">Einstellungen öffnen</string>
+    <string name="hint_projecting_puzzle">Projiziere Rätsel</string>
 </resources>
