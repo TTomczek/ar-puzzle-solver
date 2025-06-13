@@ -11,4 +11,6 @@
     <string name="sudoku_correction_cell_empty">Empty field</string>
     <string name="sudoku_tap_to_edit">Hint: Click cell to edit</string>
     <string name="page">Puzzle %1$s of %2$s</string>
+    <string name="no_camera_permission">Camera permission required</string>
+    <string name="open_settings">Open settings</string>
 </resources>

@@ -10,4 +10,6 @@
     <string name="sudoku_correction_cell_empty">Leeres Feld</string>
     <string name="sudoku_tap_to_edit">Tipp: Zelle antippen zum editieren</string>
     <string name="page">Rätsel %1$s von %2$s</string>
+    <string name="no_camera_permission">Kameraberechtigung notwendig</string>
+    <string name="open_settings">Einstellungen öffnen</string>
 </resources>

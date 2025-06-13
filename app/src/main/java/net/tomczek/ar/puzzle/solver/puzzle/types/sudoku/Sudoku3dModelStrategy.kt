@@ -33,8 +33,6 @@ object Sudoku3dModelStrategy : ArModelStrategy {
             return null
         }
 
-        Log.i("MYAPP", "Scaling to : ${augmentedImage.extentX}, ${augmentedImage.extentZ}")
-
         val sudokuBoard = SudokuBoard.fromPuzzle(entity)
         val viewNode = ViewNode2(engine, viewNodeWindowManager, materialLoader) {
             ArpuzzlesolverTheme {
@@ -53,29 +51,5 @@ object Sudoku3dModelStrategy : ArModelStrategy {
         anchorNode.addChildNode(viewNode)
 
         return anchorNode
-    }
-
-    fun renderComposableToBitmap(
-        context: Context,
-        width: Int,
-        height: Int,
-        content: @Composable () -> Unit
-    ): Bitmap {
-        // Erstelle einen ComposeView, der dein Composable enthält.
-        val composeView = ComposeView(context).apply {
-            setContent { content() }
-            // Messt die Composable-Größe exakt
-            measure(
-                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
-            )
-            // Legt das Layout fest.
-            layout(0, 0, width, height)
-        }
-        // Erzeuge ein Bitmap mit der gewünschten Größe und Zeichne den Inhalt
-        return createBitmap(width, height).also { bitmap ->
-            val canvas = Canvas(bitmap)
-            composeView.draw(canvas)
-        }
     }
 }
