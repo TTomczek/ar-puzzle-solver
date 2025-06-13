@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
+import com.google.ar.core.AugmentedImage
 import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.loaders.MaterialLoader
 import io.github.sceneview.node.ViewNode2
@@ -17,9 +18,9 @@ object ModelCreator {
         Sudoku3dModelStrategy
     )
 
-    fun getModel(entity: PuzzleEntity, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader, engine: Engine): AnchorNode? {
+    fun getModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader, engine: Engine): AnchorNode? {
         val strategy = modelStrategies.firstOrNull { it.canHandle(entity) }
 
-        return strategy?.createModel(entity, anchor, viewNodeWindowManager, materialLoader, engine)
+        return strategy?.createModel(entity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine)
     }
 }

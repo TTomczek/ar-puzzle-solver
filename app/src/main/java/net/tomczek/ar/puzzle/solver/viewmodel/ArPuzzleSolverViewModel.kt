@@ -68,12 +68,10 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
     }
 
     fun selectPuzzle(puzzle: Long?) {
-        Log.i("MYAPP", "Selecting puzzle: $puzzle")
         if (puzzle == null) {
             selectedPuzzle = null
         } else {
             selectedPuzzle = puzzles.find { it.id == puzzle }
-            Log.i("MYAPP", "Selected puzzle: $selectedPuzzle")
         }
     }
 

@@ -55,6 +55,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
+import com.google.ar.core.AugmentedImage
 import com.google.ar.core.Config
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
@@ -268,11 +269,6 @@ fun ArCameraView(
         SceneView.createViewNodeManager(context)
     })
 
-    LaunchedEffect(selectedPuzzle) {
-        Log.i("MYAPP", "Selected puzzle changed: $selectedPuzzle")
-        childNodes.clear()
-    }
-
     LaunchedEffect(viewModel.cameraPaused) {
         if (viewModel.cameraPaused) {
             Log.i("MYAPP", "Pausing AR session")
@@ -306,10 +302,10 @@ fun ArCameraView(
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
                 if (selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
-                    Log.i("MYAPP", "Creating model for augmented image: ${augmentedImage.name}")
                     augmentedImage.createAnchorOrNull(augmentedImage.centerPose)?.let { anchor ->
                         create3dModelByType(
                             selectedPuzzle,
+                            augmentedImage,
                             anchor,
                             viewNodeWindowManager,
                             materialLoader,
@@ -396,12 +392,13 @@ fun analyzeImage(
 
 fun create3dModelByType(
     puzzleEntity: PuzzleEntity,
+    augmentedImage: AugmentedImage,
     anchor: Anchor,
     viewNodeWindowManager: ViewNode2.WindowManager,
     materialLoader: MaterialLoader,
     engine: Engine
 ): Node? {
-    return ModelCreator.getModel(puzzleEntity, anchor, viewNodeWindowManager, materialLoader, engine)
+    return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine)
 }
 
 fun processSudoku(
