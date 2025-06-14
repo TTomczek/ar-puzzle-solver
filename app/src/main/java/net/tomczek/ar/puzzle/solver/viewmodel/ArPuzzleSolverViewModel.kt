@@ -49,21 +49,7 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
             data = puzzle.data,
             scanDate = System.currentTimeMillis()
         )
-        val solvingResult = PuzzleSolver.solve(puzzle)
-        val solved = solvingResult.first
-        val solvedPuzzle = solvingResult.second
-
-        if (solved) {
-            _toastEvent.emit(Pair(R.string.toast_puzzle_solved, Toast.LENGTH_LONG))
-        } else {
-            _toastEvent.emit(Pair(R.string.toast_puzzle_not_solved, Toast.LENGTH_LONG))
-        }
-
-        val puzzleToSave = if (solved) {
-            solvedPuzzle
-        } else {
-            datedPuzzle
-        }
+        val puzzleToSave = solvePuzzle(datedPuzzle)
         val savedPuzzle = puzzleDao.insertPuzzle(puzzleToSave)
 
 
@@ -86,22 +72,45 @@ class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleD
 
     fun updatePuzzle(puzzle: PuzzleEntity) {
         viewModelScope.launch {
-            puzzleDao.updatePuzzle(puzzle)
+            val puzzleToUpdate = solvePuzzle(puzzle)
+            puzzleDao.updatePuzzle(puzzleToUpdate)
             val updatedPuzzles = puzzleDao.getAllPuzzles()
             puzzles = updatedPuzzles.toMutableList()
         }
     }
 
     fun selectPuzzle(puzzle: Long?) {
-        if (puzzle == null) {
-            selectedPuzzle = null
+        selectedPuzzle = if (puzzle == null) {
+            null
         } else {
-            selectedPuzzle = puzzles.find { it.id == puzzle }
+            puzzles.find { it.id == puzzle }
         }
     }
 
     fun togglePuzzleSolution(state: Boolean? = null) {
         showPuzzleSolution = state ?: !showPuzzleSolution
+    }
+
+    private fun solvePuzzle(puzzle: PuzzleEntity): PuzzleEntity {
+        val solvingResult = PuzzleSolver.solve(puzzle)
+        val solved = solvingResult.first
+        val solvedPuzzle = solvingResult.second
+
+        viewModelScope.launch {
+            if (solved) {
+                _toastEvent.emit(Pair(R.string.toast_puzzle_solved, Toast.LENGTH_LONG))
+            } else {
+                _toastEvent.emit(Pair(R.string.toast_puzzle_not_solved, Toast.LENGTH_LONG))
+            }
+        }
+
+        val puzzleToSave = if (solved) {
+            solvedPuzzle
+        } else {
+            puzzle
+        }
+
+        return puzzleToSave
     }
 
 }

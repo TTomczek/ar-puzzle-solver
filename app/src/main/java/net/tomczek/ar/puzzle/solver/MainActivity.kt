@@ -105,7 +105,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             var permissionState by remember { mutableStateOf(checkCameraPermission()) }
 
-            // Re-evaluiere die Berechtigung, wenn die Activity resumed wird
             DisposableEffect(Unit) {
                 val lifecycleOwner = this@MainActivity
                 val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
@@ -333,7 +332,8 @@ fun ArCameraView(
             config.addAugmentedImage(
                 session,
                 "sudoku",
-                BitmapFactory.decodeResource(resources, R.raw.sudoku)
+                BitmapFactory.decodeResource(resources, R.raw.sudoku),
+                0.175f
             )
         },
         onSessionUpdated = { session, frame ->
@@ -459,7 +459,6 @@ fun processSudokuImageInCoroutine(
             try {
                 Log.i("MYAPP", "Processing image...")
                 val recognitionResult = SudokuImageProcessor().processImage(context, image)
-                Log.i("MYAPP", "$recognitionResult")
                 finishedProcessing(recognitionResult)
             } catch (e: Exception) {
                 Log.i("MYAPP", "Error processing image: ${e.message}")

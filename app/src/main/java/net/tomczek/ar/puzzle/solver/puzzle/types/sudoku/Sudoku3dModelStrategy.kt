@@ -41,7 +41,6 @@ object Sudoku3dModelStrategy : ArModelStrategy {
                 SudokuGrid(sudokuBoard, showSolution)
             }
         }.apply {
-            // Scaling: X = extentX, Y = 0.01f (Dicke), Z = extentZ
             scale = Scale(augmentedImage.extentX / 4, augmentedImage.extentZ / 4, 1f)
 
             rotation = Rotation(-90f, 0f, 0f)
