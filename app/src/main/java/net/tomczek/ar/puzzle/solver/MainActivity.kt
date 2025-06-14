@@ -305,14 +305,8 @@ fun ArCameraView(
         SceneView.createViewNodeManager(context)
     })
 
-    LaunchedEffect(viewModel.cameraPaused) {
-        if (viewModel.cameraPaused) {
-            Log.i("MYAPP", "Pausing AR session")
-            arSceneSession?.pause()
-        } else {
-            Log.i("MYAPP", "Resuming AR session")
-            arSceneSession?.resume()
-        }
+    LaunchedEffect(arPuzzleSolverViewModel.showPuzzleSolution) {
+        childNodes.clear()
     }
 
     ARScene(
