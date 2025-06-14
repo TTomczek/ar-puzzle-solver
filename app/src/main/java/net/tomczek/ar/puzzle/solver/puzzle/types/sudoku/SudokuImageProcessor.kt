@@ -310,7 +310,7 @@ class SudokuImageProcessor {
         textRecognizer: TextRecognizer,
         cells: List<InputImage>,
         originalMats: List<Mat>
-    ): List<CellRegocnitionResult> = coroutineScope {
+    ): List<CellRecognitionResult> = coroutineScope {
         cells.mapIndexed { index, cell ->
             async(Dispatchers.Default) {
                 val confidenceMap = mutableMapOf<String, MutableList<Float>>()
@@ -346,7 +346,7 @@ class SudokuImageProcessor {
                                 confidenceMap.getOrPut(text) { mutableListOf() }.add(confidence)
 
                                 if (confidence >= 0.75f) {
-                                    return@async CellRegocnitionResult(index, text, confidence)
+                                    return@async CellRecognitionResult(index, text, confidence)
                                 }
                             }
                         }
@@ -363,10 +363,10 @@ class SudokuImageProcessor {
                 if (bestGuess != null) {
                     val (text, confidences) = bestGuess
                     val averageConfidence = confidences.average().toFloat()
-                    return@async CellRegocnitionResult(index, text, averageConfidence)
+                    return@async CellRecognitionResult(index, text, averageConfidence)
                 }
 
-                return@async CellRegocnitionResult(index, "", 0.0f)
+                return@async CellRecognitionResult(index, "", 0.0f)
             }
         }.map { it.await() }
     }
