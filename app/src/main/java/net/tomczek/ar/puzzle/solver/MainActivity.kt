@@ -214,10 +214,6 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                             Spacer(Modifier.width(15.dp))
                             Button(onClick = {
                                 arPuzzleSolverViewModel.deletePuzzle(puzzle)
-                                coroutineScope.launch {
-                                    navigationDrawerState.close()
-                                    arCameraViewModel.updateCameraPaused(false)
-                                }
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
@@ -341,7 +337,8 @@ fun ArCameraView(
                             viewNodeWindowManager,
                             materialLoader,
                             engine,
-                            arPuzzleSolverViewModel.showPuzzleSolution
+                            arPuzzleSolverViewModel.showPuzzleSolution,
+                            onClick = { arPuzzleSolverViewModel.togglePuzzleSolution() }
                         )?.let {
                             childNodes += it
                         }
@@ -418,9 +415,10 @@ fun create3dModelByType(
     viewNodeWindowManager: ViewNode2.WindowManager,
     materialLoader: MaterialLoader,
     engine: Engine,
-    showSolution: Boolean = false
+    showSolution: Boolean = false,
+    onClick: () -> Unit = {}
 ): Node? {
-    return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine, showSolution)
+    return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine, showSolution, onClick)
 }
 
 fun processSudoku(
@@ -490,3 +488,5 @@ fun NoPermissionScreen(@StringRes textId: Int) {
         }
     }
 }
+
+

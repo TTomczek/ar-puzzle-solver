@@ -1,13 +1,5 @@
 package net.tomczek.ar.puzzle.solver.puzzle.types.sudoku
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.util.Log
-import android.view.View
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.ComposeView
-import androidx.core.graphics.createBitmap
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
@@ -29,7 +21,16 @@ object Sudoku3dModelStrategy : ArModelStrategy {
         return entity.type == MODEL_TYPE
     }
 
-    override fun createModel(entity: PuzzleEntity, augmentedImage: AugmentedImage, anchor: Anchor, viewNodeWindowManager: ViewNode2.WindowManager, materialLoader: MaterialLoader,engine: Engine, showSolution: Boolean): AnchorNode? {
+    override fun createModel(
+        entity: PuzzleEntity,
+        augmentedImage: AugmentedImage,
+        anchor: Anchor,
+        viewNodeWindowManager: ViewNode2.WindowManager,
+        materialLoader: MaterialLoader,
+        engine: Engine,
+        showSolution: Boolean,
+        onClick: () -> Unit
+    ): AnchorNode? {
         if (entity.type != MODEL_TYPE) {
             return null
         }
@@ -42,8 +43,12 @@ object Sudoku3dModelStrategy : ArModelStrategy {
             }
         }.apply {
             scale = Scale(augmentedImage.extentX / 4, augmentedImage.extentZ / 4, 1f)
-
+            onTouch = { _, _ ->
+                onClick()
+                true
+            }
             rotation = Rotation(-90f, 0f, 0f)
+
         }
 
         val anchorNode = AnchorNode(engine, anchor).apply {
