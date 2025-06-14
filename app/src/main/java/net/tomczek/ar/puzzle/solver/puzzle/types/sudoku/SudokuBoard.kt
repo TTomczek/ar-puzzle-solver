@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken
 import jakarta.inject.Inject
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 import net.tomczek.ar.puzzle.solver.puzzle.types.BasePuzzle
+import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
 
 class SudokuBoard @Inject constructor(
     @Expose
@@ -13,7 +14,7 @@ class SudokuBoard @Inject constructor(
     val originalValuesMask: List<Boolean> = emptyList(),
     id: Long? = null,
     scanDate: Long? = null
-) : BasePuzzle(id = id, type = "sudoku", scanDate = scanDate) {
+) : BasePuzzle(id = id, type = SupportedPuzzleTypes.SUDOKU, scanDate = scanDate) {
 
     override fun toPuzzleEntity(): PuzzleEntity {
         val data = gson.toJson(this)

@@ -19,10 +19,11 @@ import io.github.sceneview.node.ViewNode2
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuGrid
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 import net.tomczek.ar.puzzle.solver.puzzle.types.ArModelStrategy
+import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 
 object Sudoku3dModelStrategy : ArModelStrategy {
-    const val MODEL_TYPE = "sudoku"
+    val MODEL_TYPE = SupportedPuzzleTypes.SUDOKU
 
     override fun canHandle(entity: PuzzleEntity): Boolean {
         return entity.type == MODEL_TYPE

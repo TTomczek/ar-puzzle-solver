@@ -6,7 +6,7 @@ import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 
 abstract class BasePuzzle(
     val id: Long? = null,
-    val type: String = "",
+    val type: SupportedPuzzleTypes = SupportedPuzzleTypes.UNKNOWN,
     internal val data: String = "",
     val scanDate: Long? = null
 ) {

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -84,6 +85,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuBoardPage
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
+import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
 import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
 import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuImageProcessor
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
@@ -142,6 +144,13 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
     val coroutineScope = rememberCoroutineScope()
     val navigationDrawerState = rememberDrawerState(DrawerValue.Closed)
     val pagerState = rememberPagerState(0, 0.0f) { arPuzzleSolverViewModel.puzzles.size }
+    val context = LocalContext.current
+
+    LaunchedEffect(arPuzzleSolverViewModel.toastEvent) {
+        arPuzzleSolverViewModel.toastEvent.collect { (message, duration) ->
+            Toast.makeText(context, message, duration).show()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = navigationDrawerState,
@@ -169,7 +178,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
                                 )
                         ) {
                             when (puzzle.type) {
-                                "sudoku" -> {
+                                SupportedPuzzleTypes.SUDOKU -> {
                                     SudokuBoardPage(puzzle, arPuzzleSolverViewModel.showPuzzleSolution) { updatedPuzzle ->
                                         arPuzzleSolverViewModel.updatePuzzle(updatedPuzzle)
                                     }
@@ -381,12 +390,6 @@ fun analyzeImage(
                     viewModel.updateStatusText(R.string.hint_searching_puzzle)
                     viewModel.resetRecognitionFailures()
                     viewModel.setProcessingState(false)
-                    try {
-                        sudokuBoard.solve()
-                        Log.i("MYAPP", "Sudoku solved successfully")
-                    } catch (e: Exception) {
-                        Log.i("MYAPP", "Error solving sudoku: ${e.message}")
-                    }
                     val puzzleEntity = sudokuBoard.toPuzzleEntity()
                     foundPuzzle(puzzleEntity)
                 } else {
