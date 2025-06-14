@@ -15,4 +15,5 @@
     <string name="hint_projecting_puzzle">Projiziere Rätsel</string>
     <string name="toast_puzzle_solved">Rätsel gelöst</string>
     <string name="toast_puzzle_not_solved">Rätsel nicht gelöst</string>
+    <string name="no_saved_puzzles">Keine gespeicherten Rätsel</string>
 </resources>

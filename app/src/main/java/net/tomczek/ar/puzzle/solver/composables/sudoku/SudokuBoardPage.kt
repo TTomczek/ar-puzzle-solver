@@ -1,6 +1,7 @@
 package net.tomczek.ar.puzzle.solver.composables.sudoku
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -79,7 +80,7 @@ fun SudokuBoardPage(
             }
             Text(
                 stringResource(R.string.sudoku_tap_to_edit),
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(8.dp).fillMaxWidth(),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
             )

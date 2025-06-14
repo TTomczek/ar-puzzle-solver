@@ -16,4 +16,5 @@
     <string name="hint_projecting_puzzle">Projecting puzzle</string>
     <string name="toast_puzzle_solved">Puzzle solved</string>
     <string name="toast_puzzle_not_solved">Puzzle not solved</string>
+    <string name="no_saved_puzzles">No saved puzzles</string>
 </resources>

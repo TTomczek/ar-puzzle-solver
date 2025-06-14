@@ -156,6 +156,12 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
         drawerState = navigationDrawerState,
         drawerContent = {
             ModalDrawerSheet {
+                if (arPuzzleSolverViewModel.puzzles.isEmpty()) {
+                    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+                        Text(stringResource(R.string.no_saved_puzzles), modifier = Modifier.padding(16.dp).fillMaxWidth(), textAlign = TextAlign.Center)
+                    }
+                }
+
                 VerticalPager(
                     state = pagerState,
                     key = { pageIndex -> arPuzzleSolverViewModel.puzzles[pageIndex].id!! },
