@@ -16,4 +16,5 @@
     <string name="toast_puzzle_solved">Rätsel gelöst</string>
     <string name="toast_puzzle_not_solved">Rätsel nicht gelöst</string>
     <string name="no_saved_puzzles">Keine gespeicherten Rätsel</string>
+    <string name="no_analyzing_strategy">Kann Rätsel nicht analysieren</string>
 </resources>

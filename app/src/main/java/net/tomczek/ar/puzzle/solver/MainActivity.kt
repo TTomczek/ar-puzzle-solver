@@ -1,11 +1,8 @@
 package net.tomczek.ar.puzzle.solver
 
-import android.content.Context
 import android.content.res.Resources
 import android.graphics.BitmapFactory
-import android.media.Image
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -58,7 +55,6 @@ import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.core.Config
-import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import dagger.hilt.android.AndroidEntryPoint
@@ -78,15 +74,11 @@ import io.github.sceneview.rememberModelLoader
 import io.github.sceneview.rememberNodes
 import io.github.sceneview.rememberView
 import io.github.sceneview.rememberViewNodeManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuBoardPage
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
+import net.tomczek.ar.puzzle.solver.puzzle.analyzer.ImageAnalyzer
 import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuImageProcessor
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 import net.tomczek.ar.puzzle.solver.viewmodel.ArCameraViewModel
 import net.tomczek.ar.puzzle.solver.viewmodel.ArPuzzleSolverViewModel
@@ -259,6 +251,7 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
         ) { puzzle ->
             coroutineScope.launch {
                 val savedPuzzleId = arPuzzleSolverViewModel.savePuzzle(puzzle)
+                arPuzzleSolverViewModel.togglePuzzleSolution(true)
                 arPuzzleSolverViewModel.selectPuzzle(savedPuzzleId)
                 arCameraViewModel.updateStatusText(R.string.hint_projecting_puzzle)
                 arCameraViewModel.updateCameraPaused(true)
@@ -345,8 +338,12 @@ fun ArCameraView(
                 }
 
                 if (selectedPuzzle == null) {
-                    analyzeImage(context, session, frame, viewModel, augmentedImage.name) {
-                        foundPuzzle(it)
+                    try {
+                        ImageAnalyzer.analyze(context, session, frame, viewModel, augmentedImage.name) {
+                            foundPuzzle(it)
+                        }
+                    } catch (_: IllegalArgumentException) {
+                        Toast.makeText(context, R.string.no_analyzing_strategy, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -364,49 +361,6 @@ fun ArCameraView(
     )
 }
 
-fun analyzeImage(
-    context: Context,
-    session: Session,
-    frame: Frame,
-    viewModel: ArCameraViewModel,
-    augmentedImageName: String,
-    foundPuzzle: (PuzzleEntity) -> Unit
-) {
-    if (viewModel.currentlyProcessing) {
-        return
-    }
-    viewModel.setProcessingState(true)
-    viewModel.updateStatusText(R.string.hint_processing)
-
-    when (augmentedImageName) {
-        "sudoku" -> {
-            processSudoku(context, session, frame) { sudokuBoard ->
-
-                if (sudokuBoard != null) {
-                    viewModel.updateStatusText(R.string.hint_searching_puzzle)
-                    viewModel.resetRecognitionFailures()
-                    viewModel.setProcessingState(false)
-                    val puzzleEntity = sudokuBoard.toPuzzleEntity()
-                    foundPuzzle(puzzleEntity)
-                } else {
-                    viewModel.incrementRecognitionFailures()
-                    if (viewModel.recognitionFailures > 2) {
-                        viewModel.updateStatusText(R.string.hint_different_angle)
-                    } else {
-                        viewModel.updateStatusText(R.string.hint_searching_puzzle)
-                    }
-                    viewModel.setProcessingState(false)
-
-                }
-            }
-        }
-
-        else -> {
-            viewModel.setProcessingState(false)
-        }
-    }
-}
-
 fun create3dModelByType(
     puzzleEntity: PuzzleEntity,
     augmentedImage: AugmentedImage,
@@ -418,45 +372,6 @@ fun create3dModelByType(
     onClick: () -> Unit = {}
 ): Node? {
     return ModelCreator.getModel(puzzleEntity, augmentedImage, anchor, viewNodeWindowManager, materialLoader, engine, showSolution, onClick)
-}
-
-fun processSudoku(
-    ctx: Context,
-    session: Session,
-    frame: Frame,
-    processingCallback: (result: SudokuBoard?) -> Unit
-) {
-    lateinit var image: Image
-    try {
-        image = frame.acquireCameraImage()
-        session.update()
-        processSudokuImageInCoroutine(ctx, image) { sudokuBoard ->
-            processingCallback(sudokuBoard)
-            image.close()
-        }
-    } catch (e: Exception) {
-        image.close()
-        processingCallback(null)
-    }
-}
-
-fun processSudokuImageInCoroutine(
-    context: Context,
-    image: Image,
-    finishedProcessing: (result: SudokuBoard?) -> Unit
-) {
-    CoroutineScope(Dispatchers.Main).launch {
-        withContext(Dispatchers.IO) {
-            try {
-                Log.i("MYAPP", "Processing image...")
-                val recognitionResult = SudokuImageProcessor().processImage(context, image)
-                finishedProcessing(recognitionResult)
-            } catch (e: Exception) {
-                Log.i("MYAPP", "Error processing image: ${e.message}")
-                finishedProcessing(null)
-            }
-        }
-    }
 }
 
 @Composable
