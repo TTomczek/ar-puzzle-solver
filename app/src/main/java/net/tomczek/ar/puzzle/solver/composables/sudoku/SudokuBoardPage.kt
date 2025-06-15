@@ -90,6 +90,7 @@ fun SudokuBoardPage(
     dialogData?.let {
         SudokuCorrectionDialog(
             initialValue = it.second,
+            isOriginalValue = sudokuBoard.originalValuesMask[it.first],
             dismissRequest = {
                 dialogData = null
             },
@@ -128,6 +129,7 @@ fun getUpdatedSudokuBoard(
 @Composable
 fun SudokuCorrectionDialog(
     initialValue: Int,
+    isOriginalValue: Boolean,
     dismissRequest: () -> Unit,
     valueChange: (Int, Boolean) -> Unit
 ) {
@@ -136,6 +138,7 @@ fun SudokuCorrectionDialog(
     ) {
         SudokuCellCorrectionModal(
             initialValue = initialValue,
+            isOriginalValue = isOriginalValue,
             onValueChange = valueChange
         )
     }

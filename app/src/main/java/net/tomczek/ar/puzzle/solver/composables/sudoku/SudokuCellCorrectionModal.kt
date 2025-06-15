@@ -33,31 +33,31 @@ import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 @Composable
 fun SudokuCellCorrectionModalPreview() {
     ArpuzzlesolverTheme {
-        SudokuCellCorrectionModal(initialValue = 7) { _, _ -> }
+        SudokuCellCorrectionModal(initialValue = 7, true) { _, _ -> }
     }
 }
 
 @Composable
 fun SudokuCellCorrectionModal(
     initialValue: Int,
+    isOriginalValue: Boolean,
     onValueChange: (Int, Boolean) -> Unit
 ) {
     var value by remember { mutableIntStateOf(initialValue) }
 
-    // TODO Wann und wie setze ich originalValue?
     Surface {
         Column {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3)
             ) {
                 items(9) { index ->
-                    SudokuCorrectionCell(index, index + 1 == value) { correctedValue ->
+                    SudokuCorrectionCell(index, (index + 1 == value) && isOriginalValue) { correctedValue ->
                         onValueChange(correctedValue, true)
                     }
                 }
                 item { Spacer(modifier = Modifier.fillMaxWidth(1f / 3f).aspectRatio(1f).border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface)) }
                 item {
-                    SudokuCorrectionCell(index = -1, isSelected = (0 == value), cellText = stringResource(R.string.sudoku_correction_cell_empty)) { correctedValue ->
+                    SudokuCorrectionCell(index = -1, isSelected = (0 == value) || !isOriginalValue, cellText = stringResource(R.string.sudoku_correction_cell_empty)) { correctedValue ->
                         onValueChange(correctedValue, false)
                     }
                 }
