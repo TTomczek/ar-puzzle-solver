@@ -1,7 +1,6 @@
 package net.tomczek.ar.puzzle.solver
 
 import android.content.res.Resources
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -54,13 +53,13 @@ import androidx.compose.ui.unit.dp
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
+import com.google.ar.core.AugmentedImageDatabase
 import com.google.ar.core.Config
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingState
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.sceneview.SceneView
 import io.github.sceneview.ar.ARScene
-import io.github.sceneview.ar.arcore.addAugmentedImage
 import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.arcore.getUpdatedAugmentedImages
 import io.github.sceneview.ar.rememberARCameraNode
@@ -311,12 +310,10 @@ fun ArCameraView(
         sessionConfiguration = { session, config ->
             arSceneSession = session
             config.setPlaneFindingMode(Config.PlaneFindingMode.DISABLED)
-            config.addAugmentedImage(
-                session,
-                "sudoku",
-                BitmapFactory.decodeResource(resources, R.raw.sudoku),
-                0.175f
-            )
+            config.setFocusMode(Config.FocusMode.AUTO)
+            val inputStream = resources.openRawResource(R.raw.puzzles)
+            val database = AugmentedImageDatabase.deserialize(session, inputStream)
+            config.augmentedImageDatabase = database
         },
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
