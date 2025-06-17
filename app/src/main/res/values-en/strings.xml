@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Solve puzzle</string>
+    <string name="hint_searching_puzzle">Searching…</string>
+    <string name="hint_different_angle">Try another angle</string>
+    <string name="hint_processing">Processing…</string>
+    <string name="btn_show_solution">Show Solution</string>
+    <string name="btn_hide_solution">Hide Solution</string>
+    <string name="no_scan_date">No scan date</string>
+    <string name="checkbox_original_value">Given value?</string>
+    <string name="sudoku_correction_cell_empty">Empty field</string>
+    <string name="sudoku_tap_to_edit">Hint: Click cell to edit</string>
+    <string name="page">Puzzle %1$s of %2$s</string>
+    <string name="no_camera_permission">Camera permission required</string>
+    <string name="open_settings">Open settings</string>
+    <string name="hint_projecting_puzzle">Projecting puzzle</string>
+    <string name="toast_puzzle_solved">Puzzle solved</string>
+    <string name="toast_puzzle_not_solved">Puzzle not solved</string>
+    <string name="no_saved_puzzles">No saved puzzles</string>
+    <string name="no_analyzing_strategy">Cannot analyze puzzle</string>
+</resources>

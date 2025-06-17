@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Rätsel lösen</string>
+    <string name="hint_searching_puzzle">Suche…</string>
+    <string name="hint_different_angle">Versuche einen anderen Winkel</string>
+    <string name="hint_processing">Analysiere…</string>
+    <string name="btn_show_solution">Zeige Lösung</string>
+    <string name="btn_hide_solution">Lösung ausblenden</string>
+    <string name="no_scan_date">Kein Scan Datum</string>
+    <string name="checkbox_original_value">Wert gegeben?</string>
+    <string name="sudoku_correction_cell_empty">Leeres Feld</string>
+    <string name="sudoku_tap_to_edit">Tipp: Zelle antippen zum editieren</string>
+    <string name="page">Rätsel %1$s von %2$s</string>
+    <string name="no_camera_permission">Kameraberechtigung notwendig</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+    <string name="hint_projecting_puzzle">Projiziere Rätsel</string>
+    <string name="toast_puzzle_solved">Rätsel gelöst</string>
+    <string name="toast_puzzle_not_solved">Rätsel nicht gelöst</string>
+    <string name="no_saved_puzzles">Keine gespeicherten Rätsel</string>
+    <string name="no_analyzing_strategy">Kann Rätsel nicht analysieren</string>
+</resources>

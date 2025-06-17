@@ -5,7 +5,7 @@ build/
 # Local configuration file (sdk path, etc)
 local.properties
 
-# Log/OS Files
+# android.util.Log/OS Files
 *.log
 
 # Android Studio generated files and folders
@@ -31,3 +31,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+.idea
+
+/opencv/
