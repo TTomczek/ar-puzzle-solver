@@ -1,4 +1,4 @@
-package net.tomczek.ar.puzzle.solver.puzzle.analyzer
+package net.tomczek.ar.puzzle.solver.puzzle.types.sudoku
 
 import android.content.Context
 import android.media.Image
@@ -10,9 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
+import net.tomczek.ar.puzzle.solver.puzzle.types.PuzzleAnalyzerStrategy
 import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuImageProcessor
 
 object SudokuAnalyzerStrategy : PuzzleAnalyzerStrategy {
 

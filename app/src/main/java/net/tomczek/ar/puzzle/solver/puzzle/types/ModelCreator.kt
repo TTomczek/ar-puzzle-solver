@@ -1,7 +1,5 @@
-package net.tomczek.ar.puzzle.solver
+package net.tomczek.ar.puzzle.solver.puzzle.types
 
-import android.content.Context
-import android.util.Log
 import com.google.android.filament.Engine
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
@@ -9,7 +7,6 @@ import io.github.sceneview.ar.node.AnchorNode
 import io.github.sceneview.loaders.MaterialLoader
 import io.github.sceneview.node.ViewNode2
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
-import net.tomczek.ar.puzzle.solver.puzzle.types.ArModelStrategy
 import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.Sudoku3dModelStrategy
 
 object ModelCreator {

@@ -1,10 +1,11 @@
-package net.tomczek.ar.puzzle.solver.puzzle.analyzer
+package net.tomczek.ar.puzzle.solver.puzzle.types
 
 import android.content.Context
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import net.tomczek.ar.puzzle.solver.R
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
+import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuAnalyzerStrategy
 import net.tomczek.ar.puzzle.solver.viewmodel.ArCameraViewModel
 
 object ImageAnalyzer {

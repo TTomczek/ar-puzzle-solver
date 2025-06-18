@@ -1,8 +1,8 @@
-package net.tomczek.ar.puzzle.solver.puzzle.solver
+package net.tomczek.ar.puzzle.solver.puzzle.types.sudoku
 
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
+import net.tomczek.ar.puzzle.solver.puzzle.types.PuzzleSolverStrategy
 import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
-import net.tomczek.ar.puzzle.solver.puzzle.types.sudoku.SudokuBoard
 
 object SudokuSolverStrategy : PuzzleSolverStrategy {
 
@@ -11,7 +11,7 @@ object SudokuSolverStrategy : PuzzleSolverStrategy {
     }
 
     override fun solve(puzzleEntity: PuzzleEntity): Pair<Boolean, PuzzleEntity> {
-        val sudokuBoard = SudokuBoard.fromPuzzle(puzzleEntity)
+        val sudokuBoard = SudokuBoard.Companion.fromPuzzle(puzzleEntity)
         val isSolved = sudokuBoard.solve()
         return Pair<Boolean, PuzzleEntity>(isSolved, sudokuBoard.toPuzzleEntity())
     }

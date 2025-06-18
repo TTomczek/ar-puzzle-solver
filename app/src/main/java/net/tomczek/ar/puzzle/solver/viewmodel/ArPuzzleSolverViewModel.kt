@@ -15,11 +15,11 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import net.tomczek.ar.puzzle.solver.ModelCreator
+import net.tomczek.ar.puzzle.solver.puzzle.types.ModelCreator
 import net.tomczek.ar.puzzle.solver.R
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleDao
-import net.tomczek.ar.puzzle.solver.puzzle.solver.PuzzleSolver
+import net.tomczek.ar.puzzle.solver.puzzle.types.PuzzleSolver
 
 @HiltViewModel
 class ArPuzzleSolverViewModel @Inject constructor(private val puzzleDao: PuzzleDao): ViewModel() {

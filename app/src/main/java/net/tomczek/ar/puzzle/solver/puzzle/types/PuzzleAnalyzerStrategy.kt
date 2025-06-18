@@ -1,4 +1,4 @@
-package net.tomczek.ar.puzzle.solver.puzzle.analyzer
+package net.tomczek.ar.puzzle.solver.puzzle.types
 
 import android.content.Context
 import com.google.ar.core.Frame

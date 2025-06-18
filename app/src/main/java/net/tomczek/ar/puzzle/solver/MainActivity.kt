@@ -76,7 +76,8 @@ import io.github.sceneview.rememberViewNodeManager
 import kotlinx.coroutines.launch
 import net.tomczek.ar.puzzle.solver.composables.sudoku.SudokuBoardPage
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
-import net.tomczek.ar.puzzle.solver.puzzle.analyzer.ImageAnalyzer
+import net.tomczek.ar.puzzle.solver.puzzle.types.ImageAnalyzer
+import net.tomczek.ar.puzzle.solver.puzzle.types.ModelCreator
 import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
 import net.tomczek.ar.puzzle.solver.ui.theme.ArpuzzlesolverTheme
 import net.tomczek.ar.puzzle.solver.viewmodel.ArCameraViewModel
@@ -246,7 +247,6 @@ fun ArPuzzleSolver(resources: Resources, arPuzzleSolverViewModel: ArPuzzleSolver
             resources,
             arCameraViewModel,
             arPuzzleSolverViewModel,
-            arPuzzleSolverViewModel.selectedPuzzle
         ) { puzzle ->
             coroutineScope.launch {
                 val savedPuzzleId = arPuzzleSolverViewModel.savePuzzle(puzzle)
@@ -276,7 +276,6 @@ fun ArCameraView(
     resources: Resources,
     viewModel: ArCameraViewModel,
     arPuzzleSolverViewModel: ArPuzzleSolverViewModel,
-    selectedPuzzle: PuzzleEntity? = null,
     foundPuzzle: (PuzzleEntity) -> Unit
 ) {
     val engine = rememberEngine()
@@ -317,24 +316,25 @@ fun ArCameraView(
         },
         onSessionUpdated = { session, frame ->
             frame.getUpdatedAugmentedImages().forEach { augmentedImage ->
-                if (selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
+                if (arPuzzleSolverViewModel.selectedPuzzle != null && augmentedImage.trackingState == TrackingState.TRACKING && childNodes.find { it.name == augmentedImage.name } == null) {
                     augmentedImage.createAnchorOrNull(augmentedImage.centerPose)?.let { anchor ->
-                        create3dModelByType(
-                            selectedPuzzle,
-                            augmentedImage,
-                            anchor,
-                            viewNodeWindowManager,
-                            materialLoader,
-                            engine,
-                            arPuzzleSolverViewModel.showPuzzleSolution,
-                            onClick = { arPuzzleSolverViewModel.togglePuzzleSolution() }
-                        )?.let {
-                            childNodes += it
+                        arPuzzleSolverViewModel.selectedPuzzle?.let { puzzleEntity ->
+                            create3dModelByType(
+                                puzzleEntity,
+                                augmentedImage,
+                                anchor,
+                                viewNodeWindowManager,
+                                materialLoader,
+                                engine,
+                                arPuzzleSolverViewModel.showPuzzleSolution
+                            )?.let {
+                                childNodes += it
+                            }
                         }
                     }
                 }
 
-                if (selectedPuzzle == null) {
+                if (arPuzzleSolverViewModel.selectedPuzzle == null) {
                     try {
                         ImageAnalyzer.analyze(context, session, frame, viewModel, augmentedImage.name) {
                             foundPuzzle(it)

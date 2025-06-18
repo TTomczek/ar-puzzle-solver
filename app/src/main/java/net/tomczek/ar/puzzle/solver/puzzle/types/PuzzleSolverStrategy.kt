@@ -1,7 +1,6 @@
-package net.tomczek.ar.puzzle.solver.puzzle.solver
+package net.tomczek.ar.puzzle.solver.puzzle.types
 
 import net.tomczek.ar.puzzle.solver.persistence.PuzzleEntity
-import net.tomczek.ar.puzzle.solver.puzzle.types.SupportedPuzzleTypes
 
 interface PuzzleSolverStrategy {
     fun canHandle(type: SupportedPuzzleTypes): Boolean
