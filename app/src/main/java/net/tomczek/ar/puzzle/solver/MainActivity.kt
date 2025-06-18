@@ -336,7 +336,7 @@ fun ArCameraView(
 
                 if (arPuzzleSolverViewModel.selectedPuzzle == null) {
                     try {
-                        ImageAnalyzer.analyze(context, session, frame, viewModel, augmentedImage.name) {
+                        ImageAnalyzer.analyze(session, frame, viewModel, augmentedImage.name) {
                             foundPuzzle(it)
                         }
                     } catch (_: IllegalArgumentException) {

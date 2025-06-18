@@ -19,12 +19,12 @@ object SudokuAnalyzerStrategy : PuzzleAnalyzerStrategy {
         return augmentedImage == SupportedPuzzleTypes.SUDOKU.string
     }
 
-    override fun analyzePuzzle(context: Context, session: Session, frame: Frame, finishedProcessing: (PuzzleEntity?) -> Unit) {
+    override fun analyzePuzzle(session: Session, frame: Frame, finishedProcessing: (PuzzleEntity?) -> Unit) {
         lateinit var image: Image
         try {
             image = frame.acquireCameraImage()
             session.update()
-            processSudokuImageInCoroutine(context, image) { sudokuBoard ->
+            processSudokuImageInCoroutine(image) { sudokuBoard ->
                 finishedProcessing(sudokuBoard?.toPuzzleEntity())
                 image.close()
             }
@@ -35,7 +35,6 @@ object SudokuAnalyzerStrategy : PuzzleAnalyzerStrategy {
     }
 
     private fun processSudokuImageInCoroutine(
-        context: Context,
         image: Image,
         finishedProcessing: (result: SudokuBoard?) -> Unit
     ) {
@@ -43,7 +42,7 @@ object SudokuAnalyzerStrategy : PuzzleAnalyzerStrategy {
             withContext(Dispatchers.IO) {
                 try {
                     Log.i("MYAPP", "Processing image...")
-                    val recognitionResult = SudokuImageProcessor().processImage(context, image)
+                    val recognitionResult = SudokuImageProcessor().processImage(image)
                     finishedProcessing(recognitionResult)
                 } catch (e: Exception) {
                     Log.i("MYAPP", "Error processing image: ${e.message}")

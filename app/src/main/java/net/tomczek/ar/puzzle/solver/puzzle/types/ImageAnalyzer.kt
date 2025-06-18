@@ -1,6 +1,5 @@
 package net.tomczek.ar.puzzle.solver.puzzle.types
 
-import android.content.Context
 import com.google.ar.core.Frame
 import com.google.ar.core.Session
 import net.tomczek.ar.puzzle.solver.R
@@ -14,7 +13,7 @@ object ImageAnalyzer {
     )
 
     @Throws(IllegalArgumentException::class)
-    fun analyze(context: Context, session: Session, frame: Frame, viewModel: ArCameraViewModel, augmentedImage: String, foundPuzzle: (PuzzleEntity) -> Unit) {
+    fun analyze(session: Session, frame: Frame, viewModel: ArCameraViewModel, augmentedImage: String, foundPuzzle: (PuzzleEntity) -> Unit) {
         val strategy = strategies.find { it.canHandle(augmentedImage) }
             ?: throw IllegalArgumentException("No strategy found for augmented image type: $augmentedImage")
 
@@ -24,7 +23,7 @@ object ImageAnalyzer {
         viewModel.setProcessingState(true)
         viewModel.updateStatusText(R.string.hint_processing)
 
-        strategy.analyzePuzzle(context, session, frame) { puzzle ->
+        strategy.analyzePuzzle(session, frame) { puzzle ->
             if (puzzle != null) {
                 viewModel.updateStatusText(R.string.hint_searching_puzzle)
                 viewModel.resetRecognitionFailures()

@@ -39,10 +39,10 @@ class SudokuImageProcessor {
     }
 
     @Throws(ImageProcessingException::class)
-    suspend fun processImage(context: Context, image: Image): SudokuBoard? {
+    suspend fun processImage(image: Image): SudokuBoard? {
 
         try {
-            val bitmapImage = ImageConverter.Companion.imageToBitmap(image)
+            val bitmapImage = ImageConverter.imageToBitmap(image)
             if (bitmapImage == null) {
                 throw ImageProcessingException("Failed to convert image to bitmap.")
             }
@@ -54,7 +54,7 @@ class SudokuImageProcessor {
                 throw ImageProcessingException("Failed to convert image to grayscale.")
             }
 
-            val largestContour = findLargestContourInImage(context, grayImage)
+            val largestContour = findLargestContourInImage(grayImage)
             if (largestContour == null) {
                 throw ImageProcessingException("Failed to find largest contour.")
             }
@@ -68,12 +68,12 @@ class SudokuImageProcessor {
 
             val sortedQuadrilateral = sortPoints(largestQuadrilateral)
 
-            val transformedGrid = transformSudokuGrid(context, sudokuGrid, sortedQuadrilateral)
+            val transformedGrid = transformSudokuGrid(sudokuGrid, sortedQuadrilateral)
             if (transformedGrid.empty()) {
                 throw ImageProcessingException("Failed to transform Sudoku grid.")
             }
 
-            val sudokuCells = extractSudokuCells(context, transformedGrid)
+            val sudokuCells = extractSudokuCells(transformedGrid)
             if (sudokuCells.isEmpty() || sudokuCells.size != 81) {
                 throw ImageProcessingException("Failed to extract 81 Sudoku cells.")
             }
@@ -84,7 +84,6 @@ class SudokuImageProcessor {
             }
 
             val extractedNumbersFromCells = extractNumbersFromCells(
-                context,
                 TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS),
                 cellsAsInputImage,
                 sudokuCells
@@ -106,7 +105,6 @@ class SudokuImageProcessor {
      */
     fun rotateImageUpright(bitmapImage: Bitmap): Bitmap {
         val matrix = Matrix()
-        // TODO The image is always rotated 90 degrees counter-clockwise. Why?
         matrix.postRotate(90f)
 
         return Bitmap.createBitmap(bitmapImage, 0, 0, bitmapImage.width, bitmapImage.height, matrix, true)
@@ -122,7 +120,7 @@ class SudokuImageProcessor {
         return grayMat
     }
 
-    fun findLargestContourInImage(context: Context, grayScaleImage: Mat): MatOfPoint? {
+    fun findLargestContourInImage(grayScaleImage: Mat): MatOfPoint? {
         val blurredImage = Mat()
         Imgproc.GaussianBlur(grayScaleImage, blurredImage, Size(5.0, 5.0), 0.0)
         val edges = Mat()
@@ -204,8 +202,7 @@ class SudokuImageProcessor {
     /**
      * Transform the Sudoku grid to a standard size and perspective.
      */
-    fun transformSudokuGrid(context: Context, grayScaleCroppedImage: Mat, srcPoints: MatOfPoint2f): Mat {
-        // Höhere Auflösung für mehr Details
+    fun transformSudokuGrid(grayScaleCroppedImage: Mat, srcPoints: MatOfPoint2f): Mat {
         val transformedImageWidth = 288.0
 
         // Zielpunkte für die Transformation
@@ -219,14 +216,14 @@ class SudokuImageProcessor {
         // Transformationsmatrix berechnen
         val transformationMatrix = Imgproc.getPerspectiveTransform(srcPoints, dstPoints)
 
-        // Perspektivtransformation mit verbesserter Interpolation
+        // Perspektivtransformation
         val transformedGrid = Mat()
         Imgproc.warpPerspective(
             grayScaleCroppedImage,
             transformedGrid,
             transformationMatrix,
             Size(transformedImageWidth, transformedImageWidth),
-            Imgproc.INTER_CUBIC // Verbesserte Interpolation für schärfere Ergebnisse
+            Imgproc.INTER_CUBIC // Interpolation für schärfere Ergebnisse
         )
 
         // Hintergrund aufhellen mit Gamma-Korrektur
@@ -244,40 +241,13 @@ class SudokuImageProcessor {
         kernel.put(2, 0, -1.0, -1.0, -1.0)
         Imgproc.filter2D(gammaImg, sharpened, -1, kernel)
 
-//        // CLAHE (Contrast Limited Adaptive Histogram Equalization) anwenden
-//        val clahe = Imgproc.createCLAHE(3.0, Size(8.0, 8.0))
-//        val claheResult = Mat()
-//        clahe.apply(sharpened, claheResult)
-//
-//        // Adaptives Thresholding für lokale Kontrastverbesserung
-//        val binarized = Mat()
-//        Imgproc.adaptiveThreshold(
-//            claheResult,
-//            binarized,
-//            255.0,
-//            Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,
-//            Imgproc.THRESH_BINARY_INV,
-//            11,
-//            2.0
-//        )
-//
-//        // Morphologische Operationen zum Entfernen von Rauschen
-//        val element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(2.0, 2.0))
-//        val cleaned = Mat()
-//        // Hier war vorher Imgproc.MORPH_OPEN, aber MORPH_CLOSE könnte besser sein
-//        Imgproc.morphologyEx(binarized, cleaned, Imgproc.MORPH_CLOSE, element)
-//
-//        // Invertieren, um hellen Hintergrund und dunkle Ziffern zu erhalten
-//        val result = Mat()
-//        Core.bitwise_not(cleaned, result)
-
         return sharpened
     }
 
     /**
      * Extract the individual cells from the Sudoku grid.
      */
-    fun extractSudokuCells(context: Context, transformedSudokuGrid: Mat): List<Mat> {
+    fun extractSudokuCells(transformedSudokuGrid: Mat): List<Mat> {
         val cellSize = transformedSudokuGrid.width() / 9
         val sudokuCells = mutableListOf<Mat>()
 
@@ -306,7 +276,6 @@ class SudokuImageProcessor {
     }
 
     suspend fun extractNumbersFromCells(
-        context: Context,
         textRecognizer: TextRecognizer,
         cells: List<InputImage>,
         originalMats: List<Mat>
