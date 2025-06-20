@@ -295,6 +295,10 @@ fun ArCameraView(
         childNodes.clear()
     }
 
+    LaunchedEffect(arPuzzleSolverViewModel.selectedPuzzle) {
+        childNodes.clear()
+    }
+
     ARScene(
         modifier = Modifier.fillMaxSize(),
         engine = engine,
@@ -326,7 +330,10 @@ fun ArCameraView(
                                 viewNodeWindowManager,
                                 materialLoader,
                                 engine,
-                                arPuzzleSolverViewModel.showPuzzleSolution
+                                arPuzzleSolverViewModel.showPuzzleSolution,
+                                onClick = {
+                                    arPuzzleSolverViewModel.togglePuzzleSolution()
+                                }
                             )?.let {
                                 childNodes += it
                             }

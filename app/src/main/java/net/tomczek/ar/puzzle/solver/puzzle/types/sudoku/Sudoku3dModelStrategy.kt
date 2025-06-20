@@ -43,12 +43,11 @@ object Sudoku3dModelStrategy : ArModelStrategy {
             }
         }.apply {
             scale = Scale(augmentedImage.extentX / 4, augmentedImage.extentZ / 4, 1f)
-            onTouch = { _, _ ->
+            onSingleTapConfirmed = {
                 onClick()
                 true
             }
             rotation = Rotation(-90f, 0f, 0f)
-
         }
 
         val anchorNode = AnchorNode(engine, anchor).apply {
